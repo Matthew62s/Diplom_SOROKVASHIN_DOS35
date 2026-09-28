@@ -181,8 +181,10 @@ resource "aws_instance" "Worker_node" {
     	aws_security_group.server_sg.id
   	]
 }
-backend "s3" {
-    region = var.region
+terraform {
+  backend "s3" {
+    region = "eu-north-1"
     bucket = "terraform-669707689097-eu-north-1-an"
-    key  = "states/terraform.tfstate"
+    key    = "states/terraform.tfstate"
+  }
 }
