@@ -81,18 +81,28 @@ jobs:
       
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
-      run: terraform fmt -check
+      run: |
+        cd ./Terraform \
+        terraform fmt -check
       
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      run:  terraform init -reconfigure
+      run: |
+        cd ./Terraform \
+        terraform init -reconfigure
       
     - name: Terraform Validate
-      run: terraform validate
+      run: |
+        cd ./Terraform \
+        terraform validate
 
     - name: Terraform plan
-      run: terraform plan -destroy -out=destroy.tfplan
+      run: |
+        cd ./Terraform \
+        terraform plan -destroy -out=destroy.tfplan
       
     - name: Terraform destroy  
       if: ${{ inputs.destroy }}
-      run: terraform apply -auto-approve destroy.tfplan
+      run: |
+        cd ./Terraform \
+        terraform apply -auto-approve destroy.tfplan

@@ -57,7 +57,7 @@ permissions:
   contents: read
 
 jobs:
-  tofu:
+  terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
     environment: production
@@ -81,15 +81,23 @@ jobs:
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      run:  terraform init 
+      run:  |
+        cd ./Terraform \
+        terraform init 
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
-      run: terraform fmt -check
+      run: |
+        cd ./Terraform \
+        terraform fmt -check
 
     - name: Terraform plan
-      run: terraform plan -out=tfplan
+      run: |
+        cd ./Terraform \
+        terraform plan -out=tfplan
 
     - name: Terraform apply  
       if: ${{ inputs.apply }}
-      run: terraform apply -auto-approve tfplan
+      run: |
+        cd ./Terraform \
+        terraform apply -auto-approve tfplan
