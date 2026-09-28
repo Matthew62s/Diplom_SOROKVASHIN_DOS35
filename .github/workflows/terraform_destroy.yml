@@ -78,6 +78,12 @@ jobs:
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
+    
+      
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run:  terraform init 
+      
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
       run: terraform fmt -check
@@ -85,10 +91,6 @@ jobs:
     - name: Terraform plan
       run: terraform plan -out=tfplan
       
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init
-      run:  terraform init 
-
     - name: Terraform destroy  
       if: ${{ inputs.destroy }}
       run: terraform destroy -auto-approve tfplan
