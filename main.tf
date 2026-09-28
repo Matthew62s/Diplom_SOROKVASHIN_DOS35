@@ -185,4 +185,4 @@ backend "s3" {
     region = var.region
     bucket = "terraform-669707689097-eu-north-1-an"
     key  = "states/terraform.tfstate"
-    }
+}
