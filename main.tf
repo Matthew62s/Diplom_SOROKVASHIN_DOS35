@@ -149,7 +149,6 @@ resource "aws_key_pair" "ci-cd" {
 }
 
 resource "aws_instance" "Master_node" {
-  count         = 1
   ami           = "ami-0da1f66573556d917"
   instance_type = var.instance_type
   key_name      = aws_key_pair.ci-cd.key_name
@@ -166,7 +165,6 @@ resource "aws_instance" "Master_node" {
 }
 
 resource "aws_instance" "Worker_node" {
-  count         = 1
   ami           = "ami-0da1f66573556d917"
   instance_type = var.instance_type
   key_name      = aws_key_pair.ci-cd.key_name
