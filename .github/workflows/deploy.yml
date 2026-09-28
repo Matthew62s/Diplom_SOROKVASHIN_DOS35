@@ -45,10 +45,13 @@
 name: 'Deploy'
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-
+  workflow_dispatch:
+    inputs:
+      start_stack:
+        description: "Start the deploy"
+        type: boolean
+        default: false
+        
 permissions:
   contents: read
 
@@ -82,10 +85,6 @@ jobs:
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
       run: terraform fmt -check
-
-    # Generates an execution plan for Terraform
-    - name: Terraform Plan
-      run: terraform plan -input=false
 
       # On push to "main", build or change infrastructure according to Terraform configuration files
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
