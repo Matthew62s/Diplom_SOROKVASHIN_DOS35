@@ -103,10 +103,18 @@ jobs:
       run: |
         cd "./Terraform"
         terraform apply -auto-approve tfplan
-        echo "PUBLIC_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
-        echo "PRIVATE_IP=$(terraform output -raw instance_private_ip)" >> $GITHUB_OUTPUT
+        echo "PUBLIC_IP_MN=$(terraform output -raw Master_node_public_ip)" >> $GITHUB_OUTPUT
+        echo "PRIVATE_IP_MN=$(terraform output -raw Master_node_private_ip)" >> $GITHUB_OUTPUT
+        echo "PUBLIC_IP_WN1=$(terraform output -raw Worker_node_1_public_ip)" >> $GITHUB_OUTPUT
+        echo "PRIVATE_IP_WN1=$(terraform output -raw Worker_node_1_private_ip)" >> $GITHUB_OUTPUT
+        echo "PUBLIC_IP_WN2=$(terraform output -raw Worker_node_2_public_ip)" >> $GITHUB_OUTPUT
+        echo "PRIVATE_IP_WN2=$(terraform output -raw Worker_node_2_private_ip)" >> $GITHUB_OUTPUT
     
     - name: Use IPs in the next step
-        run: |
-          echo "Публичный IP: ${{ steps.tf.outputs.PUBLIC_IP }}"
-          echo "Приватный IP: ${{ steps.tf.outputs.PRIVATE_IP }}"
+      run: |
+          echo "Public master_node IP: ${{ steps.tf.outputs.PUBLIC_IP_MN }}"
+          echo "Private master_node IP: ${{ steps.tf.outputs.PRIVATE_IP_MN }}"
+          echo "Public worker_node_1 IP: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}"
+          echo "Private worker_node_1 IP: ${{ steps.tf.outputs.PRIVATE_IP_WN1 }}"
+          echo "Public worker_node_2 IP: ${{ steps.tf.outputs.PUBLIC_IP_WN2 }}"
+          echo "Private worker_node_2 IP: ${{ steps.tf.outputs.PRIVATE_IP_WN2 }}"
