@@ -78,6 +78,8 @@ jobs:
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
+      with:
+          terraform_wrapper: false
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
@@ -101,3 +103,10 @@ jobs:
       run: |
         cd "./Terraform"
         terraform apply -auto-approve tfplan
+        echo "PUBLIC_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
+        echo "PRIVATE_IP=$(terraform output -raw instance_private_ip)" >> $GITHUB_OUTPUT
+    
+    - name: Use IPs in the next step
+        run: |
+          echo "Публичный IP: ${{ steps.tf.outputs.PUBLIC_IP }}"
+          echo "Приватный IP: ${{ steps.tf.outputs.PRIVATE_IP }}"

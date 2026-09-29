@@ -164,7 +164,7 @@ resource "aws_instance" "Master_node" {
   ]
 }
 
-resource "aws_instance" "Worker_node" {
+resource "aws_instance" "Worker_node_1" {
   ami           = "ami-0da1f66573556d917"
   instance_type = var.instance_type
   key_name      = aws_key_pair.ci-cd.key_name
@@ -179,6 +179,23 @@ resource "aws_instance" "Worker_node" {
     aws_security_group.server_sg.id
   ]
 }
+
+resource "aws_instance" "Worker_node_2" {
+  ami           = "ami-0da1f66573556d917"
+  instance_type = var.instance_type
+  key_name      = aws_key_pair.ci-cd.key_name
+  tags = {
+    Name    = "AWS_Worker_server_2"
+    Owner   = "Matt"
+    Project = "CI/CD"
+  }
+  subnet_id                   = aws_subnet.public_subnets[0].id
+  associate_public_ip_address = true
+  vpc_security_group_ids = [
+    aws_security_group.server_sg.id
+  ]
+}
+
 terraform {
   backend "s3" {
     region = "eu-central-1"
