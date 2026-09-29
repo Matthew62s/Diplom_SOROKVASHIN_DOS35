@@ -98,7 +98,8 @@ jobs:
         cd "./Terraform"
         terraform plan -out=tfplan
 
-    - name: Terraform apply  
+    - name: Terraform apply
+      id: tf
       if: ${{ inputs.apply }}
       run: |
         cd "./Terraform"
