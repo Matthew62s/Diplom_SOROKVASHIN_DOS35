@@ -66,6 +66,10 @@ jobs:
         echo "PRIVATE_IP_WN1=$(terraform output -raw Worker_node_1_private_ip)" >> $GITHUB_OUTPUT
         echo "PUBLIC_IP_WN2=$(terraform output -raw Worker_node_2_public_ip)" >> $GITHUB_OUTPUT
         echo "PRIVATE_IP_WN2=$(terraform output -raw Worker_node_2_private_ip)" >> $GITHUB_OUTPUT
+
+        echo "NAME_MN=$(terraform output -raw Master_node_name)" >> $GITHUB_OUTPUT
+        echo "NAME_WN1=$(terraform output -raw Worker_node_name_1)" >> $GITHUB_OUTPUT
+        echo "NAME_WN2=$(terraform output -raw Worker_node_name_2)" >> $GITHUB_OUTPUT
     
     - name: Use IPs in the next step
       run: |
@@ -75,6 +79,10 @@ jobs:
           echo "Private worker_node_1 IP: ${{ steps.tf.outputs.PRIVATE_IP_WN1 }}"
           echo "Public worker_node_2 IP: ${{ steps.tf.outputs.PUBLIC_IP_WN2 }}"
           echo "Private worker_node_2 IP: ${{ steps.tf.outputs.PRIVATE_IP_WN2 }}"
+
+          echo "Name of Master_node: ${{ steps.tf.outputs.NAME_MN }}"
+          echo "Name of Worker_node_1: ${{ steps.tf.outputs.NAME_WN1 }}"
+          echo "Name of Worker_node_2: ${{ steps.tf.outputs.NAME_WN2 }}"
           
     # Install the latest version of Ansible to git runner
     - name: "Install Ansible"
