@@ -139,5 +139,6 @@ jobs:
         EOF
         
         export ANSIBLE_HOST_KEY_CHECKING=False
-        # ansible-playbook -i inventory/cluster/inventory.ini --become cluster.yml
         ansible all -m ping -i inventory/cluster/inventory.ini
+        ansible-playbook -i inventory/cluster/inventory.ini --become cluster.yml
+        
