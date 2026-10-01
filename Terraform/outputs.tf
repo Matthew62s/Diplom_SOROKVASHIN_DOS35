@@ -37,17 +37,17 @@ output "Worker_node_2_private_ip" {
 # Get name Master_node
 output "Master_node_name" {
   description = "Name"
-  value       = aws_instance.Master_node.tags.name
+  value       = aws_instance.Master_node.tags.Name
 }
 
 # Get name Worker_node_1
 output "Worker_node_name_1" {
-  description = "Private IP"
-  value       = aws_instance.Worker_node_1.tags.name
+  description = "Name"
+  value       = aws_instance.Worker_node_1.tags.Name
 }
 
 # Get name Worker_node_2
 output "Worker_node_name_2" {
-  description = "Private IP"
-  value       = aws_instance.Worker_node_2.tags.name
+  description = "Name"
+  value       = aws_instance.Worker_node_2.tags.Name
 }
