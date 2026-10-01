@@ -35,7 +35,7 @@ output "Worker_node_2_private_ip" {
 }
 
 # Get name Master_node
-output "Master_node_name {
+output "Master_node_name" {
   description = "Name"
   value       = aws_instance.Master_node.tags.name
 }
