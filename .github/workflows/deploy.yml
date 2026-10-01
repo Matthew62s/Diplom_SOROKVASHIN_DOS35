@@ -85,10 +85,11 @@ jobs:
           echo "Name of Worker_node_2: ${{ steps.tf.outputs.NAME_WN2 }}"
           
     # Install the latest version of Ansible to git runner
-    - name: "Install Ansible"
-      uses: alex-oleshkevich/setup-ansible@VERSION 
+    - name: Set up Ansible
+      uses: alex-brooks/ansible-action@v1
       with:
-        version: "9.3.0"
+          ansible-version: '2.21.4'
+          
     # Run ansible version    
     - name: "Print Ansible version"
       run: ansible-playbook --version
