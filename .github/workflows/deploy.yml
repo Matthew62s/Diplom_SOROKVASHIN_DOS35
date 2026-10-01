@@ -83,7 +83,7 @@ jobs:
           echo "Name of Master_node: ${{ steps.tf.outputs.NAME_MN }}"
           echo "Name of Worker_node_1: ${{ steps.tf.outputs.NAME_WN1 }}"
           echo "Name of Worker_node_2: ${{ steps.tf.outputs.NAME_WN2 }}"
-          
+    
     # Install the latest version of Ansible to git runner
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -99,3 +99,41 @@ jobs:
       run: |
           ansible --version
 
+    - name: SSH Agent
+      uses: webfactory/ssh-agent@v0.10.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    
+    - name: Run Kubespray Setup
+      run: |
+        git clone https://github.com
+        cd kubespray
+        pip install -r requirements.txt
+        cp -rfp inventory/sample inventory/cluster
+        cat << 'EOF' > inventory/cluster/inventory.ini
+        [all]
+        master_node ansible_host="${{ steps.tf.outputs.PUBLIC_IP_MN }}"
+        worker_node_1 ansible_host="${{ steps.tf.outputs.NAME_WN1 }}"
+        worker_node_2 ansible_host="${{ steps.tf.outputs.NAME_WN2 }}"
+        
+        [kube-master]
+        Master_node
+
+        [etcd]
+        Master_node
+
+        [kube-node]
+        worker_node_1
+        worker_node_2
+
+        [calico-rr]
+
+        [k8s-cluster:children]
+        kube-master
+        kube-node
+        calico-rr
+        EOF
+
+        # ansible-playbook -i inventory/cluster/inventory.ini --become cluster.yml
+        ansible all -m ping -i inventory/cluster/inventory.ini
