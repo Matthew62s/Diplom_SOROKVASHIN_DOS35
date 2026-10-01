@@ -113,22 +113,22 @@ jobs:
         cp -rfp inventory/sample inventory/cluster
         cat << EOF > inventory/cluster/inventory.ini
         [all]
-        master_node ansible_host="${{ steps.tf.outputs.PUBLIC_IP_MN }}"
-        worker_node_1 ansible_host="${{ steps.tf.outputs.PUBLIC_IP_WN1 }}"
-        worker_node_2 ansible_host="${{ steps.tf.outputs.PUBLIC_IP_WN2 }}"
+        master-node ansible_host="${{ steps.tf.outputs.PUBLIC_IP_MN }}"
+        worker-node-1 ansible_host="${{ steps.tf.outputs.PUBLIC_IP_WN1 }}"
+        worker-node-2 ansible_host="${{ steps.tf.outputs.PUBLIC_IP_WN2 }}"
 
         [all:vars]
         ansible_user=admin
         
         [kube-master]
-        master_node
+        master-node
 
         [etcd]
-        master_node
+        master-node
 
         [kube-node]
-        worker_node_1
-        worker_node_2
+        worker-node-1
+        worker-node-2
 
         [calico-rr]
 
