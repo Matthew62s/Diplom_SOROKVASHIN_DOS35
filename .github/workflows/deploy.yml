@@ -114,8 +114,11 @@ jobs:
         cat << EOF > inventory/cluster/inventory.ini
         [all]
         master_node ansible_host="${{ steps.tf.outputs.PUBLIC_IP_MN }}"
-        worker_node_1 ansible_host="${{ steps.tf.outputs.NAME_WN1 }}"
-        worker_node_2 ansible_host="${{ steps.tf.outputs.NAME_WN2 }}"
+        worker_node_1 ansible_host="${{ steps.tf.outputs.PUBLIC_IP_WN1 }}"
+        worker_node_2 ansible_host="${{ steps.tf.outputs.PUBLIC_IP_WN2 }}"
+
+        [all:vars]
+        ansible_user=admin
         
         [kube-master]
         master_node
