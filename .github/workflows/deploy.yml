@@ -111,17 +111,17 @@ jobs:
         cd kubespray
         pip install -r requirements.txt
         cp -rfp inventory/sample inventory/cluster
-        cat << 'EOF' > inventory/cluster/inventory.ini
+        cat << EOF > inventory/cluster/inventory.ini
         [all]
         master_node ansible_host="${{ steps.tf.outputs.PUBLIC_IP_MN }}"
         worker_node_1 ansible_host="${{ steps.tf.outputs.NAME_WN1 }}"
         worker_node_2 ansible_host="${{ steps.tf.outputs.NAME_WN2 }}"
         
         [kube-master]
-        Master_node
+        master_node
 
         [etcd]
-        Master_node
+        master_node
 
         [kube-node]
         worker_node_1
@@ -134,6 +134,7 @@ jobs:
         kube-node
         calico-rr
         EOF
-
+        
+        export ANSIBLE_HOST_KEY_CHECKING=False
         # ansible-playbook -i inventory/cluster/inventory.ini --become cluster.yml
         ansible all -m ping -i inventory/cluster/inventory.ini
