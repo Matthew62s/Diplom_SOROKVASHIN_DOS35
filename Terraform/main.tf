@@ -149,7 +149,7 @@ resource "aws_key_pair" "ci-cd" {
 }
 
 resource "aws_instance" "Master_node" {
-  ami           = "ami-0da1f66573556d917"
+  ami           = "ami-0035c2ac43dbd538f"
   instance_type = var.instance_type
   key_name      = aws_key_pair.ci-cd.key_name
   tags = {
@@ -165,7 +165,7 @@ resource "aws_instance" "Master_node" {
 }
 
 resource "aws_instance" "Worker_node_1" {
-  ami           = "ami-0da1f66573556d917"
+  ami           = "ami-0035c2ac43dbd538f"
   instance_type = var.instance_type
   key_name      = aws_key_pair.ci-cd.key_name
   tags = {
@@ -181,7 +181,7 @@ resource "aws_instance" "Worker_node_1" {
 }
 
 resource "aws_instance" "Worker_node_2" {
-  ami           = "ami-0da1f66573556d917"
+  ami           = "ami-0035c2ac43dbd538f"
   instance_type = var.instance_type
   key_name      = aws_key_pair.ci-cd.key_name
   tags = {
