@@ -1,0 +1,37 @@
+name: 'Helm'
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Start the helm-chart"
+        required: true
+        type: boolean
+        default: false
+        
+permissions:
+  contents: read
+
+
+jobs:
+  kubectl:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    defaults:
+      run:
+        shell: bash
+    
+    steps:
+    
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: SSH Agent
+      uses: webfactory/ssh-agent@v0.10.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
