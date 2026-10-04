@@ -1,4 +1,35 @@
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
-kubectl get nodes
+---
+- name: Configure kubectl for admin
+  hosts: master
+  become: true
+
+  tasks:
+    - name: Create .kube directory
+      ansible.builtin.file:
+        path: /home/admin/.kube
+        state: directory
+        owner: admin
+        group: admin
+        mode: "0700"
+
+    - name: Copy Kubernetes admin.conf
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/admin/.kube/config
+        remote_src: true
+        owner: admin
+        group: admin
+        mode: "0600"
+
+    - name: Check Kubernetes nodes
+      ansible.builtin.command:
+        cmd: kubectl get nodes
+      become_user: admin
+      environment:
+        KUBECONFIG: /home/admin/.kube/config
+      register: kubectl_nodes
+      changed_when: false
+
+    - name: Show Kubernetes nodes
+      ansible.builtin.debug:
+        var: kubectl_nodes.stdout_lines
