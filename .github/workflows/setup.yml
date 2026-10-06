@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   terraform:
-    name: 'Terraform'
+    name: 'Run Ansible Playbook'
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -53,6 +53,7 @@ jobs:
     
     - name: Create inventory
       run: |
+        mkdir -p inventory/cluster
         touch inventory/cluster/inventory.ini
         cat << EOF > inventory/cluster/inventory.ini
         [all]
