@@ -70,6 +70,8 @@ jobs:
         echo "NAME_MN=$(terraform output -raw Master_node_name)" >> $GITHUB_OUTPUT
         echo "NAME_WN1=$(terraform output -raw Worker_node_name_1)" >> $GITHUB_OUTPUT
         echo "NAME_WN2=$(terraform output -raw Worker_node_name_2)" >> $GITHUB_OUTPUT
+
+    
     
     - name: Use IPs in the next step
       run: |
@@ -83,6 +85,28 @@ jobs:
           echo "Name of Master_node: ${{ steps.tf.outputs.NAME_MN }}"
           echo "Name of Worker_node_1: ${{ steps.tf.outputs.NAME_WN1 }}"
           echo "Name of Worker_node_2: ${{ steps.tf.outputs.NAME_WN2 }}"
+
+    - name: Обновить несколько переменных репозитория
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        curl -L -X PATCH \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          https://github.com{{ github.repository }}/actions/variables/MASTER_NODE_IP \
+          -d '{"name":"MASTER_NODE_IP","value":"${{ steps.tf.outputs.PUBLIC_IP_MN }}"}'
+
+        curl -L -X PATCH \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          https://github.com{{ github.repository }}/actions/variables/WORKER_NODE1_IP \
+          -d '{"name":"WORKER_NODE1_IP","value":"${{ steps.tf.outputs.PRIVATE_IP_WN1 }}"}'
+        
+        curl -L -X PATCH \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          https://github.com{{ github.repository }}/actions/variables/WORKER_NODE2_IP \
+          -d '{"name":"WORKER_NODE2_IP","value":"${{ steps.tf.outputs.PRIVATE_IP_WN2 }}"}'
     
     # Install the latest version of Ansible to git runner
     - name: Set up Python
