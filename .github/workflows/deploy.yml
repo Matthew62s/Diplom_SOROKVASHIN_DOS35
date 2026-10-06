@@ -85,31 +85,72 @@ jobs:
           echo "Name of Master_node: ${{ steps.tf.outputs.NAME_MN }}"
           echo "Name of Worker_node_1: ${{ steps.tf.outputs.NAME_WN1 }}"
           echo "Name of Worker_node_2: ${{ steps.tf.outputs.NAME_WN2 }}"
-
-    - name: Update vars for after using
+        
+    - name: Create or update repository variables
       env:
         GH_TOKEN: ${{ secrets.FINE_TOKEN }}
+        MASTER_NODE_IP: ${{ steps.tf.outputs.PUBLIC_IP_MN }}
+        WORKER_NODE1_IP: ${{ steps.tf.outputs.PRIVATE_IP_WN1 }}
+        WORKER_NODE2_IP: ${{ steps.tf.outputs.PRIVATE_IP_WN2 }}
       run: |
-        curl -L -X PATCH \
+        set -euo pipefail
+      
+        API="https://api.github.com/repos/${{ github.repository }}/actions/variables"
+      
+        # Сначала убеждаемся, что токен вообще видит репозиторий
+        curl --fail-with-body -sS \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer $GH_TOKEN" \
           -H "X-GitHub-Api-Version: 2026-03-10" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/variables/MASTER_NODE_IP" \
-          -d '{"name":"MASTER_NODE_IP","value":"${{ steps.tf.outputs.PUBLIC_IP_MN }}"}'
-
-        curl -L -X PATCH \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer $GH_TOKEN" \
-          -H "X-GitHub-Api-Version: 2026-03-10" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/variables/WORKER_NODE1_IP" \
-          -d '{"name":"WORKER_NODE1_IP","value":"${{ steps.tf.outputs.PRIVATE_IP_WN1 }}"}'
-
-        curl -L -X PATCH \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer $GH_TOKEN" \
-          -H "X-GitHub-Api-Version: 2026-03-10" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/variables/WORKER_NODE2_IP" \
-          -d '{"name":"WORKER_NODE2_IP","value":"${{ steps.tf.outputs.PRIVATE_IP_WN2 }}"}'
+          "https://api.github.com/repos/${{ github.repository }}" \
+          > /dev/null
+      
+        set_var() {
+          NAME="$1"
+          VALUE="$2"
+      
+          STATUS=$(curl -sS -o /tmp/github-var.json -w "%{http_code}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "$API/$NAME")
+      
+          if [ "$STATUS" = "200" ]; then
+            echo "Updating $NAME=$VALUE"
+      
+            curl --fail-with-body -sS -X PATCH \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "X-GitHub-Api-Version: 2026-03-10" \
+              "$API/$NAME" \
+              -d "$(jq -nc \
+                --arg name "$NAME" \
+                --arg value "$VALUE" \
+                '{name:$name,value:$value}')"
+      
+          elif [ "$STATUS" = "404" ]; then
+            echo "Creating $NAME=$VALUE"
+      
+            curl --fail-with-body -sS -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "X-GitHub-Api-Version: 2026-03-10" \
+              "$API" \
+              -d "$(jq -nc \
+                --arg name "$NAME" \
+                --arg value "$VALUE" \
+                '{name:$name,value:$value}')"
+      
+          else
+            echo "GitHub API returned HTTP $STATUS for $NAME"
+            cat /tmp/github-var.json
+            exit 1
+          fi
+        }
+      
+        set_var "MASTER_NODE_IP" "$MASTER_NODE_IP"
+        set_var "WORKER_NODE1_IP" "$WORKER_NODE1_IP"
+        set_var "WORKER_NODE2_IP" "$WORKER_NODE2_IP"        
     
     # Install the latest version of Ansible to git runner
     - name: Set up Python
