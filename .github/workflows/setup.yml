@@ -30,3 +30,61 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v4
+
+    # Install the latest version of Ansible to git runner
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+          python-version: '3.12'
+
+    - name: Install Ansible
+      run: |
+          python -m pip install --upgrade pip
+          pip install ansible
+
+    - name: Run Playbook
+      run: |
+          ansible --version
+
+    - name: SSH Agent
+      uses: webfactory/ssh-agent@v0.10.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+    - name: Run Kubespray Setup
+      run: |
+        git clone --branch v2.26.0 --single-branch https://github.com/kubernetes-sigs/kubespray
+        cd kubespray
+        pip install -r requirements.txt
+        cp -rfp inventory/sample inventory/cluster
+        cat << EOF > inventory/cluster/inventory.ini
+        [all]
+        master-node ansible_host="${{ vars.MASTER_NODE_IP }}"
+        worker-node-1 ansible_host="${{ vars.WORKER_NODE1_IP }}"
+        worker-node-2 ansible_host="${{ vars.WORKER_NODE2_IP }}"
+
+        [all:vars]
+        ansible_user=admin
+        
+        [kube-master]
+        master-node
+
+        [etcd]
+        master-node
+
+        [kube-node]
+        worker-node-1
+        worker-node-2
+
+        [calico-rr]
+
+        [k8s-cluster:children]
+        kube-master
+        kube-node
+        calico-rr
+        EOF
+        
+        export ANSIBLE_HOST_KEY_CHECKING=False
+        ansible all -m ping -i inventory/cluster/inventory.ini
+
+    
