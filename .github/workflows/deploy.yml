@@ -93,18 +93,21 @@ jobs:
         curl -L -X PATCH \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer $GH_TOKEN" \
+          -H "X-GitHub-Api-Version: 2026-03-10" \
           "https://api.github.com/repos/${{ github.repository }}/actions/variables/MASTER_NODE_IP" \
           -d '{"name":"MASTER_NODE_IP","value":"${{ steps.tf.outputs.PUBLIC_IP_MN }}"}'
 
         curl -L -X PATCH \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer $GH_TOKEN" \
+          -H "X-GitHub-Api-Version: 2026-03-10" \
           "https://api.github.com/repos/${{ github.repository }}/actions/variables/WORKER_NODE1_IP" \
           -d '{"name":"WORKER_NODE1_IP","value":"${{ steps.tf.outputs.PRIVATE_IP_WN1 }}"}'
-        
+
         curl -L -X PATCH \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer $GH_TOKEN" \
+          -H "X-GitHub-Api-Version: 2026-03-10" \
           "https://api.github.com/repos/${{ github.repository }}/actions/variables/WORKER_NODE2_IP" \
           -d '{"name":"WORKER_NODE2_IP","value":"${{ steps.tf.outputs.PRIVATE_IP_WN2 }}"}'
     
