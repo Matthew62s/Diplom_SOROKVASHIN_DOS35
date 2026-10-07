@@ -90,8 +90,8 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.FINE_TOKEN }}
         MASTER_NODE_IP: ${{ steps.tf.outputs.PUBLIC_IP_MN }}
-        WORKER_NODE1_IP: ${{ steps.tf.outputs.PRIVATE_IP_WN1 }}
-        WORKER_NODE2_IP: ${{ steps.tf.outputs.PRIVATE_IP_WN2 }}
+        WORKER_NODE1_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}
+        WORKER_NODE2_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN2 }}
       run: |
         set -euo pipefail
       
