@@ -1,6 +1,6 @@
 ---
 - name: Configure kubectl for admin
-  hosts: master
+  hosts: master-node
   become: true
 
   tasks:
