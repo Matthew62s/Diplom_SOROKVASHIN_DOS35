@@ -93,7 +93,7 @@ jobs:
           hosts: master-node
           become: true
 
-            tasks:
+          tasks:
             - name: Create or update ghcr credentials secret
               ansible.builtin.shell: |
                 kubectl create secret docker-registry ghcr-cred \
