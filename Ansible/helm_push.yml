@@ -3,10 +3,9 @@
   hosts: master-node
   become: true
   vars:
-    # Путь на удаленном сервере, куда скопируем чарт
     chart_remote_dir: "/opt/diplom_chart"
-    # Namespace в Kubernetes
     k8s_namespace: "default"
+    helm_release_name: "my-diplom-app"
 
   tasks:
     - name: Create remote directory for Helm chart
@@ -17,14 +16,13 @@
 
     - name: Copy Helm chart from GitHub Runner to Master Node
       ansible.builtin.copy:
-        # Укажите относительный путь к папке с вашим чартом в репозитории
         src: "../Helm_go/"  
         dest: "{{ chart_remote_dir }}/"
         mode: '0644'
 
     - name: Install or Upgrade Helm Release
       ansible.builtin.shell: |
-        helm upgrade --install {{ chart_remote_dir }} \
+        helm upgrade --install {{ helm_release_name }} {{ chart_remote_dir }} \
           --namespace {{ k8s_namespace }}
       register: helm_output
       changed_when: true
