@@ -85,4 +85,4 @@ jobs:
         export ANSIBLE_HOST_KEY_CHECKING=False
         ansible all -m ping -i inventory/cluster/inventory.ini
         ansible-playbook -i inventory/cluster/inventory.ini ./Ansible/add_config_k8s.yml --limit master-node
-    
+        ansible-playbook -i inventory/cluster/inventory.ini ./Ansible/helm_install.yml --limit master-node
