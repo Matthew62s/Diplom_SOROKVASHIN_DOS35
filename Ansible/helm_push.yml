@@ -18,7 +18,7 @@
     - name: Copy Helm chart from GitHub Runner to Master Node
       ansible.builtin.copy:
         # Укажите относительный путь к папке с вашим чартом в репозитории
-        src: "./Ansible/helm_push.yml"  
+        src: "./Helm_go/"  
         dest: "{{ chart_remote_dir }}/"
         mode: '0644'
 
