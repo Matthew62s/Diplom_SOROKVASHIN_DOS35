@@ -1,0 +1,34 @@
+---
+- name: Deploy Helm Chart to Kubernetes
+  hosts: master-node
+  become: true
+  vars:
+    # Путь на удаленном сервере, куда скопируем чарт
+    chart_remote_dir: "/opt/diplom_chart"
+    # Namespace в Kubernetes
+    k8s_namespace: "default"
+
+  tasks:
+    - name: Create remote directory for Helm chart
+      ansible.builtin.file:
+        path: "{{ chart_remote_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy Helm chart from GitHub Runner to Master Node
+      ansible.builtin.copy:
+        # Укажите относительный путь к папке с вашим чартом в репозитории
+        src: "./Ansible/helm_push.yml"  
+        dest: "{{ chart_remote_dir }}/"
+        mode: '0644'
+
+    - name: Install or Upgrade Helm Release
+      ansible.builtin.shell: |
+        helm upgrade --install {{ chart_remote_dir }} \
+          --namespace {{ k8s_namespace }}
+      register: helm_output
+      changed_when: true
+
+    - name: Show Helm deploy output
+      ansible.builtin.debug:
+        var: helm_output.stdout_lines
