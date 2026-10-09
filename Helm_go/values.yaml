@@ -14,7 +14,8 @@ image:
   tag: "latest"
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-imagePullSecrets: [ghcr-cred]
+imagePullSecrets: 
+  - name: ghcr-cred
 # This is to override the chart name.
 nameOverride: ""
 fullnameOverride: ""
@@ -36,7 +37,8 @@ serviceAccount:
 podAnnotations: {}
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-podLabels: {goapp}
+podLabels:
+  app: goapp
 
 podSecurityContext: {}
   # fsGroup: 2000
