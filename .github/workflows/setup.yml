@@ -50,7 +50,7 @@ jobs:
       uses: webfactory/ssh-agent@v0.10.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-    
+        
     - name: Create inventory
       run: |
         mkdir -p inventory/cluster
@@ -81,8 +81,21 @@ jobs:
         kube-node
         calico-rr
         EOF
-        
+
+    - name: Setup ghcr registry
+      run: |
+        mkdir -p secrets/playbooks/
+        touch secrets/playbooks/ghcr.yml
+        cat << EOF > secrets/playbooks/ghcr.yml
+        kubectl create secret docker-registry ghcr-cred \
+          --docker-server=ghcr.io \
+          --docker-username=${{ github.actor }} \
+          --docker-password=${{ secrets.GITHUB_TOKEN }} \
+
+        EOF
+
         export ANSIBLE_HOST_KEY_CHECKING=False
         ansible all -m ping -i inventory/cluster/inventory.ini
         ansible-playbook -i inventory/cluster/inventory.ini ./Ansible/add_config_k8s.yml --limit master-node
         ansible-playbook -i inventory/cluster/inventory.ini ./Ansible/helm_install.yml --limit master-node
+        ansible-playbook -i inventory/cluster/inventory.ini secrets/playbooks/ghcr.yml --limit master-node
