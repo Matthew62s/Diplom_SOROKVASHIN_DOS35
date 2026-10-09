@@ -87,10 +87,7 @@ jobs:
         mkdir -p secrets/playbooks/
         touch secrets/playbooks/ghcr.yml
         cat << EOF > secrets/playbooks/ghcr.yml
-        kubectl create secret docker-registry ghcr-cred \
-          --docker-server=ghcr.io \
-          --docker-username=${{ github.actor }} \
-          --docker-password=${{ secrets.GITHUB_TOKEN }} \
+        kubectl create secret docker-registry ghcr-cred --docker-server=ghcr.io --docker-username=${{ github.actor }} --docker-password=${{ secrets.GITHUB_TOKEN }}
 
         EOF
 
