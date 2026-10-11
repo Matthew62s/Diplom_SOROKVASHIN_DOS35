@@ -207,6 +207,7 @@ jobs:
         EOF
 
     - name: Setup ghcr registry
+      working-directory: ./kubespray
       run: |
         mkdir -p secrets/playbooks/
         touch secrets/playbooks/ghcr.yml

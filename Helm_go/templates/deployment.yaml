@@ -36,3 +36,45 @@ spec:
             httpGet:
               path: /
               port: http
+
+        - name: caddy
+          image: caddy:2
+          imagePullPolicy: IfNotPresent
+          args:
+            - run
+            - --config
+            - /opt/pvc/caddy/Caddyfile
+            - --adapter
+            - caddyfile
+          ports:
+            - name: caddy-http
+              containerPort: 80
+              protocol: TCP
+            - name: caddy-https
+              containerPort: 443
+              protocol: TCP
+          volumeMounts:
+            - name: caddy-config
+              mountPath: /opt/pvc/caddy
+              readOnly: true
+            - name: caddy-storage
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 100m
+          livenessProbe:
+            httpGet:
+              path: /
+              port: https
+          readinessProbe:
+            httpGet:
+              path: /
+              port: https
+
+      volumes:
+        - name: caddy-config
+          configMap:
+            name: caddy-config
+        - name: caddy-storage
+          persistentVolumeClaim:
+            claimName: caddy-storage

@@ -4,6 +4,7 @@
   become: true
   vars:
     chart_remote_dir: "/opt/diplom_chart"
+    chart_remote_dir_caddy: "/opt/Caddyfile"
     k8s_namespace: "default"
     helm_release_name: "my-diplom-app"
 
@@ -14,11 +15,29 @@
         state: directory
         mode: '0755'
 
+    - name: Create remote directory for configmap caddy-config
+      ansible.builtin.file:
+        path: "{{ chart_remote_dir_caddy }}"
+        state: directory
+        mode: '0755'
+
     - name: Copy Helm chart from GitHub Runner to Master Node
       ansible.builtin.copy:
         src: "../Helm_go/"  
         dest: "{{ chart_remote_dir }}/"
         mode: '0644'
+    
+    - name: Copy configmap caddy-config from GitHub Runner to Master Node
+      ansible.builtin.copy:
+        src: "../Caddyfile/"  
+        dest: "{{ chart_remote_dir_caddy }}/"
+        mode: '0644'
+
+    - name: Run create configmap
+      ansible.builtin.shell: |
+        kubectl create configmap caddy-config --from-file=Caddyfile=./Caddyfile -n default
+      register: configmap_output
+      changed_when: true
 
     - name: Install or Upgrade Helm Release
       ansible.builtin.shell: |
@@ -30,3 +49,9 @@
     - name: Show Helm deploy output
       ansible.builtin.debug:
         var: helm_output.stdout_lines
+    
+    - name: Show ConfigMap output
+      ansible.builtin.debug:
+        var: configmap_output.stdout_lines
+
+
