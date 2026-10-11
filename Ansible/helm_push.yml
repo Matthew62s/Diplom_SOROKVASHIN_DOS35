@@ -29,13 +29,13 @@
     
     - name: Copy configmap caddy-config from GitHub Runner to Master Node
       ansible.builtin.copy:
-        src: "../Caddyfile/"  
-        dest: "{{ chart_remote_dir_caddy }}/"
+        src: "{{ playbook_dir }}/../Caddy/Caddyfile"
+        dest: "{{ chart_remote_dir_caddy }}/Caddyfile"
         mode: '0644'
 
     - name: Run create configmap
       ansible.builtin.shell: |
-        kubectl create configmap caddy-config --from-file=Caddyfile=./Caddyfile -n default
+        kubectl create configmap caddy-config --from-file=Caddyfile={{ chart_remote_dir_caddy }}/Caddyfile -n default
       register: configmap_output
       changed_when: true
 
