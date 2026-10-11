@@ -81,30 +81,6 @@ jobs:
         kube-node
         calico-rr
         EOF
-    
-    - name: Setup ghcr registry
-      run: |
-        mkdir -p helm/playbooks/
-        touch helm/playbooks/helm.yml
-        cat << EOF > helm/playbooks/helm.yml
-        ---
-
-        - name: Create ghcr credentials
-          hosts: master-node
-          become: true
-
-          tasks:
-            - name: Create or update ghcr credentials secret
-              ansible.builtin.shell: |
-                kubectl create secret docker-registry ghcr-cred \
-                  --docker-server=ghcr.io \
-                  --docker-username="{{ k8s_user }}" \
-                  --docker-password="{{ k8s_token }}" \
-                  --dry-run=client -o yaml | kubectl apply -f -
-              register: secret_output
-              changed_when: "'configured' in secret_output.stdout or 'created' in secret_output.stdout"
-
-        EOF
 
     - name: Setup ghcr registry
       run: |
