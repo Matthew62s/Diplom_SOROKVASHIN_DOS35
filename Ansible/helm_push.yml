@@ -33,11 +33,22 @@
         dest: "{{ chart_remote_dir_caddy }}/Caddyfile"
         mode: '0644'
 
-    - name: Run create configmap
+    - name: Create or update Caddy ConfigMap
       ansible.builtin.shell: |
-        kubectl create configmap caddy-config --from-file=Caddyfile={{ chart_remote_dir_caddy }}/Caddyfile -n default
+        set -o pipefail
+        kubectl create configmap caddy-config \
+          --from-file=Caddyfile=/opt/Caddyfile/Caddyfile \
+          --namespace {{ k8s_namespace | quote }} \
+          --dry-run=client -o yaml |
+        kubectl apply --namespace {{ k8s_namespace | quote }} -f -
+      args:
+        executable: /bin/bash
+      environment:
+        KUBECONFIG: /home/admin/.kube/config
       register: configmap_output
-      changed_when: true
+      changed_when: >
+        'created' in configmap_output.stdout or
+        'configured' in configmap_output.stdout
 
     - name: Install or Upgrade Helm Release
       ansible.builtin.shell: |
