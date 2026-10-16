@@ -1,0 +1,30 @@
+---
+- name: Deploy Go application
+  hosts: master-node
+  become: true
+
+  environment:
+    KUBECONFIG: /home/admin/.kube/config
+
+  tasks:
+    - name: Copy application Helm chart
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../Helm_go/"
+        dest: /opt/diplom_chart/
+        mode: '0644'
+
+    - name: Deploy application version
+      ansible.builtin.command:
+        argv:
+          - helm
+          - upgrade
+          - --install
+          - my-diplom-app
+          - /opt/diplom_chart
+          - --namespace
+          - default
+          - --set-string
+          - "image.tag={{ image_tag }}"
+          - --wait
+          - --timeout
+          - 3m

@@ -18,7 +18,7 @@ spec:
         - name: ghcr-cred
       containers:
         - name: goapp
-          image: ghcr.io/matthew62s/diplom_sorokvashin_dos35:latest
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: IfNotPresent
           env:
             - name: POD_IP

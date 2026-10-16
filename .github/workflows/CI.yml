@@ -96,3 +96,50 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+        
+  deploy:
+    name: Deploy application
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: production
+
+    permissions:
+      contents: read
+
+    env:
+      MASTER_NODE_IP: ${{ vars.MASTER_NODE_IP }}
+      IMAGE_TAG: ${{ github.ref_name }}
+      ANSIBLE_HOST_KEY_CHECKING: "False"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: SSH Agent
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Create inventory
+        run: |
+          mkdir -p inventory
+          cat > inventory/deploy.ini <<EOF
+          [app]
+          master-node ansible_host=${MASTER_NODE_IP} ansible_user=admin
+          EOF
+
+      - name: Deploy application through Ansible
+        run: |
+          ansible-playbook \
+            -i inventory/deploy.ini \
+            Ansible/deploy_app.yml \
+            --extra-vars "image_tag=${IMAGE_TAG}"        
