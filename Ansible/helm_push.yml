@@ -60,6 +60,45 @@
     - name: Show Helm deploy output
       ansible.builtin.debug:
         var: helm_output.stdout_lines
+
+    - name: Create values.yaml for traefik
+      ansible.builtin.copy:
+        content: | 
+                persistence:
+                  enabled: true
+                  name: traefik-certs-storage
+                  size: 128Mi
+                  path: /data
+                additionalArguments:
+                  - "--certificatesresolvers.le.acme.email=vtsfut76@gmail.com"
+                  - "--certificatesresolvers.le.acme.storage=/data/acme.json"
+                  - "--certificatesresolvers.le.acme.httpchallenge=true"
+                  - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+                ingressRoute:
+                  dashboard:
+                    enabled: true
+                    matchRule: Host(`traefik.oohjob.com`)
+                    entryPoints:
+                      - web
+                providers:
+                  kubernetesGateway:
+                    enabled: true
+                gateway:
+                  listeners:
+                    web:
+                      namespacePolicy:
+                        from: All
+                ports:
+                  web:
+                    redirectTo:
+                      port: websecure
+        dest: values.yaml
+      
+    - name: Install traefik via helm
+      ansible.builtin.shell: |
+        helm repo add traefik https://traefik.github.io/charts \
+        helm repo update \
+        helm install traefik traefik/traefik -f values.yaml --wait
     
     - name: Show ConfigMap output
       ansible.builtin.debug:

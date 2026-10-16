@@ -5,7 +5,6 @@ metadata:
   labels:
     app: goapp
 spec:
-  # HPA manages replicas; the initial minimum is set in hpa.yaml.
   selector:
     matchLabels:
       app: goapp
@@ -36,44 +35,3 @@ spec:
             httpGet:
               path: /
               port: http
-
-        - name: caddy
-          image: caddy:2
-          imagePullPolicy: IfNotPresent
-          command: ["caddy"]
-          args:
-            - run
-            - --config
-            - /opt/pvc/caddy/Caddyfile
-            - --adapter
-            - caddyfile
-          ports:
-            - name: caddy-http
-              containerPort: 80
-              protocol: TCP
-            - name: caddy-https
-              containerPort: 443
-              protocol: TCP
-          volumeMounts:
-            - name: caddy-config
-              mountPath: /opt/pvc/caddy
-              readOnly: true
-            - name: caddy-storage
-              mountPath: /data
-          resources:
-            requests:
-              cpu: 100m
-          livenessProbe:
-            tcpSocket:
-              port: caddy-https
-          readinessProbe:
-            tcpSocket:
-              port: caddy-https
-
-      volumes:
-        - name: caddy-config
-          configMap:
-            name: caddy-config
-        - name: caddy-storage
-          persistentVolumeClaim:
-            claimName: caddy-storage
