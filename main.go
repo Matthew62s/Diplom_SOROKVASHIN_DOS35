@@ -1,29 +1,34 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"io"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Hello, world!\n")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+
+	fmt.Fprintf(w, "Hello, world!\nPod: %s\nPod IP: %s\nNode IP: %s\n",
+		os.Getenv("HOSTNAME"),
+		os.Getenv("POD_IP"),
+		os.Getenv("NODE_IP"),
+	)
 }
 
-// Route declaration
 func router() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/", handler)
 	return r
 }
 
-// Initiate web server
 func main() {
-	router := router()
 	srv := &http.Server{
-		Handler:      router,
+		Handler:      router(),
 		Addr:         "0.0.0.0:8080",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,

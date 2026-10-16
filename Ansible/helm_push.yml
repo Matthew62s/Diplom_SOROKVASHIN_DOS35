@@ -134,7 +134,7 @@
 
           updateStrategy:
             type: Recreate
-            rollingUpdate: null
+            rollingUpdate: {}
 
           autoscaling:
             enabled: false
@@ -162,6 +162,7 @@
           persistence:
             enabled: true
             name: traefik-certs-storage
+            existingClaim: traefik-certs-storage
             size: 128Mi
             path: /data
 

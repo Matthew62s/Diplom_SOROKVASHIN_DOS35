@@ -20,6 +20,15 @@ spec:
         - name: goapp
           image: ghcr.io/matthew62s/diplom_sorokvashin_dos35:latest
           imagePullPolicy: IfNotPresent
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           ports:
             - name: http
               containerPort: 8080
