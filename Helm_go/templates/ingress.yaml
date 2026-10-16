@@ -5,10 +5,11 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/certresolver: "le"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: "le"
 spec:
+  ingressClassName: traefik
   rules:
-    - host: ://oohjob.com
+    - host: oohjob.com
       http:
         paths:
           - path: /

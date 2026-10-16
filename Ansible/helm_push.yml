@@ -60,7 +60,68 @@
     - name: Show Helm deploy output
       ansible.builtin.debug:
         var: helm_output.stdout_lines
+    
+    - name: Create certificate directory on worker-node-1
+      ansible.builtin.file:
+        path: /var/lib/traefik
+        state: directory
+        owner: '65532'
+        group: '65532'
+        mode: '0700'
+      delegate_to: worker-node-1
+    
+    - name: Create Traefik storage manifest
+      ansible.builtin.copy:
+        dest: /opt/traefik-storage.yaml
+        mode: '0644'
+        content: |
+          apiVersion: v1
+          kind: PersistentVolume
+          metadata:
+            name: traefik-certs-pv
+          spec:
+            capacity:
+              storage: 128Mi
+            volumeMode: Filesystem
+            accessModes:
+              - ReadWriteOnce
+            persistentVolumeReclaimPolicy: Retain
+            storageClassName: ""
+            claimRef:
+              namespace: default
+              name: traefik-certs-storage
+            hostPath:
+              path: /var/lib/traefik
+              type: Directory
+            nodeAffinity:
+              required:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values:
+                          - worker-node-1
+          ---
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: traefik-certs-storage
+            namespace: default
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: ""
+            volumeName: traefik-certs-pv
+            resources:
+              requests:
+                storage: 128Mi
 
+    - name: Apply Traefik storage
+      ansible.builtin.command:
+        cmd: kubectl apply -f /opt/traefik-storage.yaml
+      environment:
+        KUBECONFIG: /home/admin/.kube/config
+    
     - name: Create values.yaml for traefik
       ansible.builtin.copy:
         dest: /opt/traefik-values.yaml

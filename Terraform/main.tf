@@ -138,6 +138,13 @@ resource "aws_security_group" "server_sg" {
     cidr_blocks = [aws_vpc.main.cidr_block]
   }
   ingress {
+    description = "Internal Kubernetes communication"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+  }
+  ingress {
     description = "HTTP"
     from_port   = 80
     to_port     = 80
