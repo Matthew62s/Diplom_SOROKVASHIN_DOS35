@@ -73,11 +73,13 @@ jobs:
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        persist-credentials: false
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@bfaf33cd488dd9a148df9ea8868ffec802fc4a04 # v1
       
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format

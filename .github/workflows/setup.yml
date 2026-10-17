@@ -29,11 +29,13 @@ jobs:
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      with:
+        persist-credentials: false
 
     # Install the latest version of Ansible to git runner
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
       with:
           python-version: '3.12'
 
@@ -47,11 +49,12 @@ jobs:
           ansible --version
 
     - name: SSH Agent
-      uses: webfactory/ssh-agent@v0.10.0
+      uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
         
     - name: Create inventory
+      if: ${{ inputs.apply }}
       run: |
         mkdir -p inventory/cluster
         touch inventory/cluster/inventory.ini
@@ -83,6 +86,10 @@ jobs:
         EOF
 
     - name: Setup ghcr registry
+      if: ${{ inputs.apply }}
+      env:
+        K8S_USER: ${{ github.actor }}
+        K8S_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         mkdir -p secrets/playbooks/
         touch secrets/playbooks/ghcr.yml
@@ -112,5 +119,5 @@ jobs:
         ansible-playbook -i inventory/cluster/inventory.ini ./Ansible/helm_install.yml --limit master-node
         ansible-playbook -i inventory/cluster/inventory.ini secrets/playbooks/ghcr.yml \
           --limit master-node \
-          -e "k8s_user=${{ github.actor }} k8s_token=${{ secrets.GH_TOKEN }}"
+          -e "k8s_user=${K8S_USER} k8s_token=${K8S_TOKEN}"
         ansible-playbook -i inventory/cluster/inventory.ini ./Ansible/helm_push.yml --limit master-node
