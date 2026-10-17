@@ -14,12 +14,30 @@ spec:
         app: goapp
     spec:
       serviceAccountName: goapp
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       imagePullSecrets:
         - name: ghcr-cred
       containers:
         - name: goapp
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           env:
             - name: POD_IP
               valueFrom:
@@ -36,6 +54,10 @@ spec:
           resources:
             requests:
               cpu: 100m
+              memory: 32Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
           livenessProbe:
             httpGet:
               path: /

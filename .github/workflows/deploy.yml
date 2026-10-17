@@ -1,4 +1,4 @@
-name: 'Deploy'
+name: "Deploy"
 
 on:
   workflow_dispatch:
@@ -8,13 +8,13 @@ on:
         required: true
         type: boolean
         default: false
-        
+
 permissions:
   contents: read
 
 jobs:
   terraform:
-    name: 'Terraform'
+    name: "Terraform"
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -27,227 +27,253 @@ jobs:
         shell: bash
 
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v4
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
+      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@ed3a0531877aca392eb870f440d9ae7aba83a6bd # v1
+        with:
           terraform_wrapper: false
 
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init
-      run:  |
-        cd "./Terraform"
-        terraform init 
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+      - name: Terraform Init
+        run: |
+          cd "./Terraform"
+          terraform init
 
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Format
-      run: |
-        cd "./Terraform"
-        terraform fmt -check
+      # Checks that all Terraform configuration files adhere to a canonical format
+      - name: Terraform Format
+        run: |
+          cd "./Terraform"
+          terraform fmt -check
 
-    - name: Terraform plan
-      run: |
-        cd "./Terraform"
-        terraform plan -out=tfplan
+      - name: Terraform plan
+        run: |
+          cd "./Terraform"
+          terraform plan -out=tfplan
 
-    - name: Terraform apply
-      id: tf
-      if: ${{ inputs.apply }}
-      run: |
-        cd "./Terraform"
-        terraform apply -auto-approve tfplan
-        echo "PUBLIC_IP_MN=$(terraform output -raw Master_node_public_ip)" >> $GITHUB_OUTPUT
-        echo "PRIVATE_IP_MN=$(terraform output -raw Master_node_private_ip)" >> $GITHUB_OUTPUT
-        echo "PUBLIC_IP_WN1=$(terraform output -raw Worker_node_1_public_ip)" >> $GITHUB_OUTPUT
-        echo "PRIVATE_IP_WN1=$(terraform output -raw Worker_node_1_private_ip)" >> $GITHUB_OUTPUT
-        echo "PUBLIC_IP_WN2=$(terraform output -raw Worker_node_2_public_ip)" >> $GITHUB_OUTPUT
-        echo "PRIVATE_IP_WN2=$(terraform output -raw Worker_node_2_private_ip)" >> $GITHUB_OUTPUT
+      - name: Terraform apply
+        id: tf
+        if: ${{ inputs.apply }}
+        run: |
+          cd "./Terraform"
+          terraform apply -auto-approve tfplan
 
-        echo "NAME_MN=$(terraform output -raw Master_node_name)" >> $GITHUB_OUTPUT
-        echo "NAME_WN1=$(terraform output -raw Worker_node_name_1)" >> $GITHUB_OUTPUT
-        echo "NAME_WN2=$(terraform output -raw Worker_node_name_2)" >> $GITHUB_OUTPUT
+          {
+            echo "PUBLIC_IP_MN=$(terraform output -raw Master_node_public_ip)"
+            echo "PRIVATE_IP_MN=$(terraform output -raw Master_node_private_ip)"
+            echo "PUBLIC_IP_WN1=$(terraform output -raw Worker_node_1_public_ip)"
+            echo "PRIVATE_IP_WN1=$(terraform output -raw Worker_node_1_private_ip)"
+            echo "PUBLIC_IP_WN2=$(terraform output -raw Worker_node_2_public_ip)"
+            echo "PRIVATE_IP_WN2=$(terraform output -raw Worker_node_2_private_ip)"
+            echo "NAME_MN=$(terraform output -raw Master_node_name)"
+            echo "NAME_WN1=$(terraform output -raw Worker_node_name_1)"
+            echo "NAME_WN2=$(terraform output -raw Worker_node_name_2)"
+          } >> "$GITHUB_OUTPUT"
 
-    
-    
-    - name: Use IPs in the next step
-      run: |
-          echo "Public master_node IP: ${{ steps.tf.outputs.PUBLIC_IP_MN }}"
-          echo "Private master_node IP: ${{ steps.tf.outputs.PRIVATE_IP_MN }}"
-          echo "Public worker_node_1 IP: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}"
-          echo "Private worker_node_1 IP: ${{ steps.tf.outputs.PRIVATE_IP_WN1 }}"
-          echo "Public worker_node_2 IP: ${{ steps.tf.outputs.PUBLIC_IP_WN2 }}"
-          echo "Private worker_node_2 IP: ${{ steps.tf.outputs.PRIVATE_IP_WN2 }}"
+      - name: Use IPs in the next step
+        if: ${{ inputs.apply }}
+        env:
+          PUBLIC_IP_MN: ${{ steps.tf.outputs.PUBLIC_IP_MN }}
+          PRIVATE_IP_MN: ${{ steps.tf.outputs.PRIVATE_IP_MN }}
+          PUBLIC_IP_WN1: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}
+          PRIVATE_IP_WN1: ${{ steps.tf.outputs.PRIVATE_IP_WN1 }}
+          PUBLIC_IP_WN2: ${{ steps.tf.outputs.PUBLIC_IP_WN2 }}
+          PRIVATE_IP_WN2: ${{ steps.tf.outputs.PRIVATE_IP_WN2 }}
+          NAME_MN: ${{ steps.tf.outputs.NAME_MN }}
+          NAME_WN1: ${{ steps.tf.outputs.NAME_WN1 }}
+          NAME_WN2: ${{ steps.tf.outputs.NAME_WN2 }}
+        run: |
+          echo "Public master_node IP: ${PUBLIC_IP_MN}"
+          echo "Private master_node IP: ${PRIVATE_IP_MN}"
+          echo "Public worker_node_1 IP: ${PUBLIC_IP_WN1}"
+          echo "Private worker_node_1 IP: ${PRIVATE_IP_WN1}"
+          echo "Public worker_node_2 IP: ${PUBLIC_IP_WN2}"
+          echo "Private worker_node_2 IP: ${PRIVATE_IP_WN2}"
 
-          echo "Name of Master_node: ${{ steps.tf.outputs.NAME_MN }}"
-          echo "Name of Worker_node_1: ${{ steps.tf.outputs.NAME_WN1 }}"
-          echo "Name of Worker_node_2: ${{ steps.tf.outputs.NAME_WN2 }}"
-        
-    - name: Create or update repository variables
-      env:
-        GH_TOKEN: ${{ secrets.FINE_TOKEN }}
-        MASTER_NODE_IP: ${{ steps.tf.outputs.PUBLIC_IP_MN }}
-        WORKER_NODE1_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}
-        WORKER_NODE2_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN2 }}
-      run: |
-        set -euo pipefail
-      
-        API="https://api.github.com/repos/${{ github.repository }}/actions/variables"
-      
-        # Сначала убеждаемся, что токен вообще видит репозиторий
-        curl --fail-with-body -sS \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer $GH_TOKEN" \
-          -H "X-GitHub-Api-Version: 2026-03-10" \
-          "https://api.github.com/repos/${{ github.repository }}" \
-          > /dev/null
-      
-        set_var() {
-          NAME="$1"
-          VALUE="$2"
-      
-          STATUS=$(curl -sS -o /tmp/github-var.json -w "%{http_code}" \
+          echo "Name of Master_node: ${NAME_MN}"
+          echo "Name of Worker_node_1: ${NAME_WN1}"
+          echo "Name of Worker_node_2: ${NAME_WN2}"
+
+      - name: Create or update repository variables
+        if: ${{ inputs.apply }}
+        env:
+          GH_TOKEN: ${{ secrets.FINE_TOKEN }}
+          MASTER_NODE_IP: ${{ steps.tf.outputs.PUBLIC_IP_MN }}
+          WORKER_NODE1_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}
+          WORKER_NODE2_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN2 }}
+        run: |
+          set -euo pipefail
+
+          API="https://api.github.com/repos/${{ github.repository }}/actions/variables"
+
+          # Сначала убеждаемся, что токен вообще видит репозиторий
+          curl --fail-with-body -sS \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H "X-GitHub-Api-Version: 2026-03-10" \
-            "$API/$NAME")
-      
-          if [ "$STATUS" = "200" ]; then
-            echo "Updating $NAME=$VALUE"
-      
-            curl --fail-with-body -sS -X PATCH \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "X-GitHub-Api-Version: 2026-03-10" \
-              "$API/$NAME" \
-              -d "$(jq -nc \
-                --arg name "$NAME" \
-                --arg value "$VALUE" \
-                '{name:$name,value:$value}')"
-      
-          elif [ "$STATUS" = "404" ]; then
-            echo "Creating $NAME=$VALUE"
-      
-            curl --fail-with-body -sS -X POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "X-GitHub-Api-Version: 2026-03-10" \
-              "$API" \
-              -d "$(jq -nc \
-                --arg name "$NAME" \
-                --arg value "$VALUE" \
-                '{name:$name,value:$value}')"
-      
-          else
-            echo "GitHub API returned HTTP $STATUS for $NAME"
-            cat /tmp/github-var.json
-            exit 1
-          fi
-        }
-      
-        set_var "MASTER_NODE_IP" "$MASTER_NODE_IP"
-        set_var "WORKER_NODE1_IP" "$WORKER_NODE1_IP"
-        set_var "WORKER_NODE2_IP" "$WORKER_NODE2_IP"        
-    
-    - name: Add A-record to cloudflare
-      env: 
-        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      run: |
-        curl --fail-with-body --silent --show-error \
-          --request PATCH \
-          "https://api.cloudflare.com/client/v4/zones/09641f4c11a6df1f0ea5df23e19db1e9/dns_records/c21b76049e18af4b1f47f8f47a8e48ec" \
-          --header "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-          --header "Content-Type: application/json" \
-          --data "$(jq -n --arg ip "${{ steps.tf.outputs.PUBLIC_IP_WN1 }}" '{content: $ip}')" \
-          | jq -e 'if .success then .result else error(.errors | tostring) end'
-    # Install the latest version of Ansible to git runner
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-          python-version: '3.12'
+            "https://api.github.com/repos/${{ github.repository }}" \
+            > /dev/null
 
-    - name: Install Ansible
-      run: |
+          set_var() {
+            NAME="$1"
+            VALUE="$2"
+
+            STATUS=$(curl -sS -o /tmp/github-var.json -w "%{http_code}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "X-GitHub-Api-Version: 2026-03-10" \
+              "$API/$NAME")
+
+            if [ "$STATUS" = "200" ]; then
+              echo "Updating $NAME=$VALUE"
+
+              curl --fail-with-body -sS -X PATCH \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "X-GitHub-Api-Version: 2026-03-10" \
+                "$API/$NAME" \
+                -d "$(jq -nc \
+                  --arg name "$NAME" \
+                  --arg value "$VALUE" \
+                  '{name:$name,value:$value}')"
+
+            elif [ "$STATUS" = "404" ]; then
+              echo "Creating $NAME=$VALUE"
+
+              curl --fail-with-body -sS -X POST \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "X-GitHub-Api-Version: 2026-03-10" \
+                "$API" \
+                -d "$(jq -nc \
+                  --arg name "$NAME" \
+                  --arg value "$VALUE" \
+                  '{name:$name,value:$value}')"
+
+            else
+              echo "GitHub API returned HTTP $STATUS for $NAME"
+              cat /tmp/github-var.json
+              exit 1
+            fi
+          }
+
+          set_var "MASTER_NODE_IP" "$MASTER_NODE_IP"
+          set_var "WORKER_NODE1_IP" "$WORKER_NODE1_IP"
+          set_var "WORKER_NODE2_IP" "$WORKER_NODE2_IP"
+
+      - name: Add A-record to cloudflare
+        if: ${{ inputs.apply }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WORKER_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request PATCH \
+            "https://api.cloudflare.com/client/v4/zones/09641f4c11a6df1f0ea5df23e19db1e9/dns_records/c21b76049e18af4b1f47f8f47a8e48ec" \
+            --header "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data "$(jq -n --arg ip "$WORKER_IP" '{content: $ip}')" \
+            | jq -e 'if .success then .result else error(.errors | tostring) end'
+
+      # Install the latest version of Ansible to git runner
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Install Ansible
+        run: |
           python -m pip install --upgrade pip
           pip install ansible
 
-    - name: Run Playbook
-      run: |
+      - name: Run Playbook
+        run: |
           ansible --version
 
-    - name: SSH Agent
-      uses: webfactory/ssh-agent@v0.10.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: SSH Agent
+        if: ${{ inputs.apply }}
+        uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    
-    - name: Run Kubespray Setup
-      run: |
-        git clone --branch v2.26.0 --single-branch https://github.com/kubernetes-sigs/kubespray
-        cd kubespray
-        pip install -r requirements.txt
-        cp -rfp inventory/sample inventory/cluster
-        cat << EOF > inventory/cluster/inventory.ini
-        [all]
-        master-node ansible_host="${{ steps.tf.outputs.PUBLIC_IP_MN }}"
-        worker-node-1 ansible_host="${{ steps.tf.outputs.PUBLIC_IP_WN1 }}"
-        worker-node-2 ansible_host="${{ steps.tf.outputs.PUBLIC_IP_WN2 }}"
+      - name: Run Kubespray Setup
+        env:
+          MASTER_NODE_IP: ${{ steps.tf.outputs.PUBLIC_IP_MN }}
+          WORKER_NODE1_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}
+          WORKER_NODE2_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN2 }}
+        if: ${{ inputs.apply }}
+        run: |
+          git clone --branch v2.26.0 --single-branch https://github.com/kubernetes-sigs/kubespray
+          cd kubespray
+          pip install -r requirements.txt
+          cp -rfp inventory/sample inventory/cluster
+          cat << EOF > inventory/cluster/inventory.ini
+          [all]
+          master-node ansible_host="${MASTER_NODE_IP}"
+          worker-node-1 ansible_host="${WORKER_NODE1_IP}"
+          worker-node-2 ansible_host="${WORKER_NODE2_IP}"
 
-        [all:vars]
-        ansible_user=admin
-        
-        [kube-master]
-        master-node
+          [all:vars]
+          ansible_user=admin
 
-        [etcd]
-        master-node
+          [kube-master]
+          master-node
 
-        [kube-node]
-        worker-node-1
-        worker-node-2
+          [etcd]
+          master-node
 
-        [calico-rr]
+          [kube-node]
+          worker-node-1
+          worker-node-2
 
-        [k8s-cluster:children]
-        kube-master
-        kube-node
-        calico-rr
-        EOF
+          [calico-rr]
 
-    - name: Setup ghcr registry
-      working-directory: ./kubespray
-      run: |
-        mkdir -p secrets/playbooks/
-        touch secrets/playbooks/ghcr.yml
-        cat << EOF > secrets/playbooks/ghcr.yml
-        ---
+          [k8s-cluster:children]
+          kube-master
+          kube-node
+          calico-rr
+          EOF
 
-        - name: Create ghcr credentials
-          hosts: master-node
-          become: true
+      - name: Setup ghcr registry
+        if: ${{ inputs.apply }}
+        env:
+          K8S_USER: ${{ github.actor }}
+          K8S_TOKEN: ${{ secrets.GH_TOKEN }}
+        working-directory: ./kubespray
+        run: |
+          mkdir -p secrets/playbooks/
+          touch secrets/playbooks/ghcr.yml
+          cat << EOF > secrets/playbooks/ghcr.yml
+          ---
 
-          tasks:
-            - name: Create or update ghcr credentials secret
-              ansible.builtin.shell: |
-                kubectl create secret docker-registry ghcr-cred \
-                  --docker-server=ghcr.io \
-                  --docker-username="{{ k8s_user }}" \
-                  --docker-password="{{ k8s_token }}" \
-                  --dry-run=client -o yaml | kubectl apply -f -
-              register: secret_output
-              changed_when: "'configured' in secret_output.stdout or 'created' in secret_output.stdout"
+          - name: Create ghcr credentials
+            hosts: master-node
+            become: true
 
-        EOF
-        
-        export ANSIBLE_HOST_KEY_CHECKING=False
-        ansible all -m ping -i inventory/cluster/inventory.ini
-        ansible-playbook -i inventory/cluster/inventory.ini --become cluster.yml
-        ansible-playbook -i inventory/cluster/inventory.ini ../Ansible/add_config_k8s.yml --limit master-node
-        ansible-playbook -i inventory/cluster/inventory.ini ../Ansible/helm_install.yml --limit master-node
-        ansible-playbook -i inventory/cluster/inventory.ini secrets/playbooks/ghcr.yml \
-          --limit master-node \
-          -e "k8s_user=${{ github.actor }} k8s_token=${{ secrets.GH_TOKEN }}"
-        ansible-playbook -i inventory/cluster/inventory.ini ../Ansible/helm_push.yml --limit master-node
+            tasks:
+              - name: Create or update ghcr credentials secret
+                ansible.builtin.shell: |
+                  kubectl create secret docker-registry ghcr-cred \
+                    --docker-server=ghcr.io \
+                    --docker-username="{{ k8s_user }}" \
+                    --docker-password="{{ k8s_token }}" \
+                    --dry-run=client -o yaml | kubectl apply -f -
+                register: secret_output
+                changed_when: "'configured' in secret_output.stdout or 'created' in secret_output.stdout"
+
+          EOF
+
+          export ANSIBLE_HOST_KEY_CHECKING=False
+          ansible all -m ping -i inventory/cluster/inventory.ini
+          ansible-playbook -i inventory/cluster/inventory.ini --become cluster.yml
+          ansible-playbook -i inventory/cluster/inventory.ini ../Ansible/add_config_k8s.yml --limit master-node
+          ansible-playbook -i inventory/cluster/inventory.ini ../Ansible/helm_install.yml --limit master-node
+          ansible-playbook -i inventory/cluster/inventory.ini secrets/playbooks/ghcr.yml \
+            --limit master-node \
+            -e "k8s_user=${K8S_USER} k8s_token=${K8S_TOKEN}"
+          ansible-playbook -i inventory/cluster/inventory.ini ../Ansible/helm_push.yml --limit master-node

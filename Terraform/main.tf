@@ -226,6 +226,15 @@ resource "aws_instance" "Worker_node_2" {
 }
 
 terraform {
+  required_version = ">= 1.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 3.0"
+    }
+  }
+
   backend "s3" {
     region = "eu-central-1"
     bucket = "terraform-669707689097-eu-central-1-an"

@@ -1,19 +1,23 @@
 variable "region" {
+  type        = string
   description = "AWS region"
   default     = "eu-central-1"
 }
 
 variable "instance_type" {
+  type        = string
   description = "EC2 instance type"
   default     = "t3.small"
 }
 
 variable "AWS_access" {
+  type        = string
   description = "AWS ami access key"
   default     = ""
 }
 
 variable "AWS_secret" {
+  type        = string
   description = "AWS ami secret key"
   default     = ""
 }
