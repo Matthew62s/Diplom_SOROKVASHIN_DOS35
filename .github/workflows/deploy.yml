@@ -35,7 +35,7 @@ jobs:
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@bfaf33cd488dd9a148df9ea8868ffec802fc4a04 # v1
       with:
           terraform_wrapper: false
 
@@ -62,20 +62,23 @@ jobs:
       run: |
         cd "./Terraform"
         terraform apply -auto-approve tfplan
-        echo "PUBLIC_IP_MN=$(terraform output -raw Master_node_public_ip)" >> "$GITHUB_OUTPUT"
-        echo "PRIVATE_IP_MN=$(terraform output -raw Master_node_private_ip)" >> "$GITHUB_OUTPUT"
-        echo "PUBLIC_IP_WN1=$(terraform output -raw Worker_node_1_public_ip)" >> "$GITHUB_OUTPUT"
-        echo "PRIVATE_IP_WN1=$(terraform output -raw Worker_node_1_private_ip)" >> "$GITHUB_OUTPUT"
-        echo "PUBLIC_IP_WN2=$(terraform output -raw Worker_node_2_public_ip)" >> "$GITHUB_OUTPUT"
-        echo "PRIVATE_IP_WN2=$(terraform output -raw Worker_node_2_private_ip)" >> "$GITHUB_OUTPUT"
 
-        echo "NAME_MN=$(terraform output -raw Master_node_name)" >> "$GITHUB_OUTPUT"
-        echo "NAME_WN1=$(terraform output -raw Worker_node_name_1)" >> "$GITHUB_OUTPUT"
-        echo "NAME_WN2=$(terraform output -raw Worker_node_name_2)" >> "$GITHUB_OUTPUT"
+        {
+          echo "PUBLIC_IP_MN=$(terraform output -raw Master_node_public_ip)"
+          echo "PRIVATE_IP_MN=$(terraform output -raw Master_node_private_ip)"
+          echo "PUBLIC_IP_WN1=$(terraform output -raw Worker_node_1_public_ip)"
+          echo "PRIVATE_IP_WN1=$(terraform output -raw Worker_node_1_private_ip)"
+          echo "PUBLIC_IP_WN2=$(terraform output -raw Worker_node_2_public_ip)"
+          echo "PRIVATE_IP_WN2=$(terraform output -raw Worker_node_2_private_ip)"
+          echo "NAME_MN=$(terraform output -raw Master_node_name)"
+          echo "NAME_WN1=$(terraform output -raw Worker_node_name_1)"
+          echo "NAME_WN2=$(terraform output -raw Worker_node_name_2)"
+        } >> "$GITHUB_OUTPUT"
 
     
     
     - name: Use IPs in the next step
+      if: ${{ inputs.apply }}
       run: |
           echo "Public master_node IP: ${{ steps.tf.outputs.PUBLIC_IP_MN }}"
           echo "Private master_node IP: ${{ steps.tf.outputs.PRIVATE_IP_MN }}"
@@ -89,6 +92,7 @@ jobs:
           echo "Name of Worker_node_2: ${{ steps.tf.outputs.NAME_WN2 }}"
         
     - name: Create or update repository variables
+      if: ${{ inputs.apply }}
       env:
         GH_TOKEN: ${{ secrets.FINE_TOKEN }}
         MASTER_NODE_IP: ${{ steps.tf.outputs.PUBLIC_IP_MN }}
@@ -155,6 +159,7 @@ jobs:
         set_var "WORKER_NODE2_IP" "$WORKER_NODE2_IP"        
     
     - name: Add A-record to cloudflare
+      if: ${{ inputs.apply }}
       env: 
         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       run: |
@@ -181,12 +186,14 @@ jobs:
           ansible --version
 
     - name: SSH Agent
+      if: ${{ inputs.apply }}
       uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     
     - name: Run Kubespray Setup
+      if: ${{ inputs.apply }}
       run: |
         git clone --branch v2.26.0 --single-branch https://github.com/kubernetes-sigs/kubespray
         cd kubespray
@@ -220,6 +227,7 @@ jobs:
         EOF
 
     - name: Setup ghcr registry
+      if: ${{ inputs.apply }}
       env:
         K8S_USER: ${{ github.actor }}
         K8S_TOKEN: ${{ secrets.GH_TOKEN }}
