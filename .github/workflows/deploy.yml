@@ -35,7 +35,7 @@ jobs:
 
       # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@bfaf33cd488dd9a148df9ea8868ffec802fc4a04 # v1
+        uses: hashicorp/setup-terraform@ed3a0531877aca392eb870f440d9ae7aba83a6bd # v1
         with:
           terraform_wrapper: false
 
@@ -77,17 +77,27 @@ jobs:
 
       - name: Use IPs in the next step
         if: ${{ inputs.apply }}
+        env:
+          PUBLIC_IP_MN: ${{ steps.tf.outputs.PUBLIC_IP_MN }}
+          PRIVATE_IP_MN: ${{ steps.tf.outputs.PRIVATE_IP_MN }}
+          PUBLIC_IP_WN1: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}
+          PRIVATE_IP_WN1: ${{ steps.tf.outputs.PRIVATE_IP_WN1 }}
+          PUBLIC_IP_WN2: ${{ steps.tf.outputs.PUBLIC_IP_WN2 }}
+          PRIVATE_IP_WN2: ${{ steps.tf.outputs.PRIVATE_IP_WN2 }}
+          NAME_MN: ${{ steps.tf.outputs.NAME_MN }}
+          NAME_WN1: ${{ steps.tf.outputs.NAME_WN1 }}
+          NAME_WN2: ${{ steps.tf.outputs.NAME_WN2 }}
         run: |
-          echo "Public master_node IP: ${{ steps.tf.outputs.PUBLIC_IP_MN }}"
-          echo "Private master_node IP: ${{ steps.tf.outputs.PRIVATE_IP_MN }}"
-          echo "Public worker_node_1 IP: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}"
-          echo "Private worker_node_1 IP: ${{ steps.tf.outputs.PRIVATE_IP_WN1 }}"
-          echo "Public worker_node_2 IP: ${{ steps.tf.outputs.PUBLIC_IP_WN2 }}"
-          echo "Private worker_node_2 IP: ${{ steps.tf.outputs.PRIVATE_IP_WN2 }}"
+          echo "Public master_node IP: ${PUBLIC_IP_MN}"
+          echo "Private master_node IP: ${PRIVATE_IP_MN}"
+          echo "Public worker_node_1 IP: ${PUBLIC_IP_WN1}"
+          echo "Private worker_node_1 IP: ${PRIVATE_IP_WN1}"
+          echo "Public worker_node_2 IP: ${PUBLIC_IP_WN2}"
+          echo "Private worker_node_2 IP: ${PRIVATE_IP_WN2}"
 
-          echo "Name of Master_node: ${{ steps.tf.outputs.NAME_MN }}"
-          echo "Name of Worker_node_1: ${{ steps.tf.outputs.NAME_WN1 }}"
-          echo "Name of Worker_node_2: ${{ steps.tf.outputs.NAME_WN2 }}"
+          echo "Name of Master_node: ${NAME_MN}"
+          echo "Name of Worker_node_1: ${NAME_WN1}"
+          echo "Name of Worker_node_2: ${NAME_WN2}"
 
       - name: Create or update repository variables
         if: ${{ inputs.apply }}
@@ -160,14 +170,16 @@ jobs:
         if: ${{ inputs.apply }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WORKER_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}
         run: |
           curl --fail-with-body --silent --show-error \
             --request PATCH \
             "https://api.cloudflare.com/client/v4/zones/09641f4c11a6df1f0ea5df23e19db1e9/dns_records/c21b76049e18af4b1f47f8f47a8e48ec" \
             --header "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             --header "Content-Type: application/json" \
-            --data "$(jq -n --arg ip "${{ steps.tf.outputs.PUBLIC_IP_WN1 }}" '{content: $ip}')" \
+            --data "$(jq -n --arg ip "$WORKER_IP" '{content: $ip}')" \
             | jq -e 'if .success then .result else error(.errors | tostring) end'
+
       # Install the latest version of Ansible to git runner
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
@@ -190,6 +202,10 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Run Kubespray Setup
+        env:
+          MASTER_NODE_IP: ${{ steps.tf.outputs.PUBLIC_IP_MN }}
+          WORKER_NODE1_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN1 }}
+          WORKER_NODE2_IP: ${{ steps.tf.outputs.PUBLIC_IP_WN2 }}
         if: ${{ inputs.apply }}
         run: |
           git clone --branch v2.26.0 --single-branch https://github.com/kubernetes-sigs/kubespray
@@ -198,9 +214,9 @@ jobs:
           cp -rfp inventory/sample inventory/cluster
           cat << EOF > inventory/cluster/inventory.ini
           [all]
-          master-node ansible_host="${{ steps.tf.outputs.PUBLIC_IP_MN }}"
-          worker-node-1 ansible_host="${{ steps.tf.outputs.PUBLIC_IP_WN1 }}"
-          worker-node-2 ansible_host="${{ steps.tf.outputs.PUBLIC_IP_WN2 }}"
+          master-node ansible_host="${MASTER_NODE_IP}"
+          worker-node-1 ansible_host="${WORKER_NODE1_IP}"
+          worker-node-2 ansible_host="${WORKER_NODE2_IP}"
 
           [all:vars]
           ansible_user=admin

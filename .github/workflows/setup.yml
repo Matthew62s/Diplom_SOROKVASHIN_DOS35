@@ -54,15 +54,19 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Create inventory
+        env:
+          MASTER_NODE_IP: ${{ vars.MASTER_NODE_IP }}
+          WORKER_NODE1_IP: ${{ vars.WORKER_NODE1_IP }}
+          WORKER_NODE2_IP: ${{ vars.WORKER_NODE2_IP }}
         if: ${{ inputs.apply }}
         run: |
           mkdir -p inventory/cluster
           touch inventory/cluster/inventory.ini
           cat << EOF > inventory/cluster/inventory.ini
           [all]
-          master-node ansible_host="${{ vars.MASTER_NODE_IP }}"
-          worker-node-1 ansible_host="${{ vars.WORKER_NODE1_IP }}"
-          worker-node-2 ansible_host="${{ vars.WORKER_NODE2_IP }}"
+          master-node ansible_host="${MASTER_NODE_IP}"
+          worker-node-1 ansible_host="${WORKER_NODE1_IP}"
+          worker-node-2 ansible_host="${WORKER_NODE2_IP}"
 
           [all:vars]
           ansible_user=admin
