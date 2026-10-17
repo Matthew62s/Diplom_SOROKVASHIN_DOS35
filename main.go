@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func handler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 
 	fmt.Fprintf(w, "Hello, world!\nPod: %s\nPod IP: %s\nNode IP: %s\n",

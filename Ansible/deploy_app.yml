@@ -11,7 +11,7 @@
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../Helm_go/"
         dest: /opt/diplom_chart/
-        mode: '0644'
+        mode: "0644"
 
     - name: Deploy application version
       ansible.builtin.command:

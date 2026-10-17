@@ -1,9 +1,7 @@
 ---
-
 - name: Install helm for master-node
   hosts: master-node
-  become: true 
-
+  become: true
 
   tasks:
     - name: Download Helm installer

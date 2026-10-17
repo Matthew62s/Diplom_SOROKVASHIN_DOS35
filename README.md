@@ -1,1 +1,3 @@
-"# Diplom_SOROKVASHIN_DOS35" 
+# CI/CD Go-app Project
+
+## by SOROKVASHIN MATVEI

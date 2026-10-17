@@ -13,25 +13,25 @@
       ansible.builtin.file:
         path: "{{ chart_remote_dir }}"
         state: directory
-        mode: '0755'
+        mode: "0755"
 
     - name: Create remote directory for configmap caddy-config
       ansible.builtin.file:
         path: "{{ chart_remote_dir_caddy }}"
         state: directory
-        mode: '0755'
+        mode: "0755"
 
     - name: Copy Helm chart from GitHub Runner to Master Node
       ansible.builtin.copy:
-        src: "../Helm_go/"  
+        src: "../Helm_go/"
         dest: "{{ chart_remote_dir }}/"
-        mode: '0644'
-    
+        mode: "0644"
+
     - name: Copy configmap caddy-config from GitHub Runner to Master Node
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../Caddy/Caddyfile"
         dest: "{{ chart_remote_dir_caddy }}/Caddyfile"
-        mode: '0644'
+        mode: "0644"
 
     - name: Create or update Caddy ConfigMap
       ansible.builtin.shell: |
@@ -60,20 +60,20 @@
     - name: Show Helm deploy output
       ansible.builtin.debug:
         var: helm_output.stdout_lines
-    
+
     - name: Create certificate directory on worker-node-1
       ansible.builtin.file:
         path: /var/lib/traefik
         state: directory
-        owner: '65532'
-        group: '65532'
-        mode: '0700'
+        owner: "65532"
+        group: "65532"
+        mode: "0700"
       delegate_to: worker-node-1
-    
+
     - name: Create Traefik storage manifest
       ansible.builtin.copy:
         dest: /opt/traefik-storage.yaml
-        mode: '0644'
+        mode: "0644"
         content: |
           apiVersion: v1
           kind: PersistentVolume
@@ -121,11 +121,11 @@
         cmd: kubectl apply -f /opt/traefik-storage.yaml
       environment:
         KUBECONFIG: /home/admin/.kube/config
-    
+
     - name: Create values.yaml for traefik
       ansible.builtin.copy:
         dest: /opt/traefik-values.yaml
-        mode: '0644'
+        mode: "0644"
         content: |
           deployment:
             enabled: true
@@ -194,7 +194,7 @@
           ingressRoute:
             dashboard:
               enabled: false
-      
+
     - name: Install or upgrade Traefik
       ansible.builtin.shell: |
         set -euo pipefail
@@ -211,9 +211,7 @@
       environment:
         KUBECONFIG: /home/admin/.kube/config
       changed_when: true
-    
+
     - name: Show ConfigMap output
       ansible.builtin.debug:
         var: configmap_output.stdout_lines
-
-
