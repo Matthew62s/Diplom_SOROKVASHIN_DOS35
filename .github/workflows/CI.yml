@@ -138,6 +138,7 @@ jobs:
 
     env:
       MASTER_NODE_IP: ${{ vars.MASTER_NODE_IP }}
+      WORKER_NODE1_IP: ${{ vars.WORKER_NODE1_IP }}
       IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
       ANSIBLE_HOST_KEY_CHECKING: "False"
 
@@ -166,12 +167,14 @@ jobs:
           cat > inventory/deploy.ini <<EOF
           [app]
           master-node ansible_host=${MASTER_NODE_IP} ansible_user=admin
+          worker-node-1 ansible_host="${WORKER_NODE1_IP}" ansible_user=admin
           EOF
+
       - name: Helm push
         run: |
           ansible-playbook \
-            -i inventory/cluster/inventory.ini \
-            ../Ansible/helm_push.yml \
+            -i inventory/cluster/deploy.ini \
+            Ansible/helm_push.yml \
             --limit master-node
         
       - name: Deploy application through Ansible

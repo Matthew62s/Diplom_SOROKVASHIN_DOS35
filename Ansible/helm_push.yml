@@ -4,7 +4,6 @@
   become: true
   vars:
     chart_remote_dir: "/opt/diplom_chart"
-    chart_remote_dir_caddy: "/opt/Caddyfile"
     k8s_namespace: "default"
     helm_release_name: "my-diplom-app"
 
@@ -12,12 +11,6 @@
     - name: Create remote directory for Helm chart
       ansible.builtin.file:
         path: "{{ chart_remote_dir }}"
-        state: directory
-        mode: "0755"
-
-    - name: Create remote directory for configmap caddy-config
-      ansible.builtin.file:
-        path: "{{ chart_remote_dir_caddy }}"
         state: directory
         mode: "0755"
 
