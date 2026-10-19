@@ -27,29 +27,6 @@
         dest: "{{ chart_remote_dir }}/"
         mode: "0644"
 
-    - name: Copy configmap caddy-config from GitHub Runner to Master Node
-      ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../Caddy/Caddyfile"
-        dest: "{{ chart_remote_dir_caddy }}/Caddyfile"
-        mode: "0644"
-
-    - name: Create or update Caddy ConfigMap
-      ansible.builtin.shell: |
-        set -o pipefail
-        kubectl create configmap caddy-config \
-          --from-file=Caddyfile=/opt/Caddyfile/Caddyfile \
-          --namespace {{ k8s_namespace | quote }} \
-          --dry-run=client -o yaml |
-        kubectl apply --namespace {{ k8s_namespace | quote }} -f -
-      args:
-        executable: /bin/bash
-      environment:
-        KUBECONFIG: /home/admin/.kube/config
-      register: configmap_output
-      changed_when: >
-        'created' in configmap_output.stdout or
-        'configured' in configmap_output.stdout
-
     - name: Install or Upgrade Helm Release
       ansible.builtin.shell: |
         helm upgrade --install {{ helm_release_name }} {{ chart_remote_dir }} \
