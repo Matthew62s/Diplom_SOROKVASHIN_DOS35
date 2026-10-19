@@ -237,7 +237,7 @@ terraform {
 
   backend "s3" {
     region = "eu-central-1"
-    bucket = "terraform-669707689097-eu-central-1-an"
+    bucket = "terraform-392202704672-eu-central-1-an"
     key    = "states/terraform.tfstate"
   }
 }
