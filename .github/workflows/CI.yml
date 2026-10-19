@@ -173,7 +173,7 @@ jobs:
       - name: Helm push
         run: |
           ansible-playbook \
-            -i inventory/cluster/deploy.ini \
+            -i inventory/deploy.ini \
             Ansible/helm_push.yml \
             --limit master-node
         
