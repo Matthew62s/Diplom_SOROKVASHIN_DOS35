@@ -174,7 +174,7 @@ resource "aws_security_group" "server_sg" {
 
 resource "aws_key_pair" "ci-cd" {
   key_name   = "cicd-key"
-  public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFpdRe0UDhi97w2BKtP8Vvu1TSNOJ6erv9UQ9m6a/BJt cicd-key"
+  public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVbcSGZBlc9Xl5WMQY9zE8CmPSILZMo0DQ2Z2QO6Wvz cicd-key"
 }
 
 resource "aws_instance" "Master_node" {
