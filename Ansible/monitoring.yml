@@ -7,16 +7,46 @@
       {{ lookup('ansible.builtin.env', 'GRAFANA_ADMIN_PASSWORD') }}
     val_path: "/opt/monitoring"
 
+  environment:
+    KUBECONFIG: /home/admin/.kube/config
+
   tasks:
+    - name: Check Grafana password
+      ansible.builtin.assert:
+        that:
+          - grafana_admin_password | length > 0
+        fail_msg: "GRAFANA_ADMIN_PASSWORD is required"
+      no_log: true
+
+    - name: Create monitoring namespace
+      ansible.builtin.shell: |
+        set -o pipefail
+        kubectl create namespace monitoring \
+          --dry-run=client -o yaml |
+        kubectl apply -f -
+      args:
+        executable: /bin/bash
+      register: namespace_output
+      changed_when: "'created' in namespace_output.stdout"
+
     - name: Create or update grafana credentials secret
       ansible.builtin.shell: |
+        set -o pipefail
         kubectl create secret generic grafana-admin \
           --namespace monitoring \
-        --from-literal=admin-user=admin \
-        --from-file=admin-password={{ grafana_admin_password }}
-
+          --from-literal=admin-user=admin \
+          --from-file=admin-password=/dev/stdin \
+          --dry-run=client -o yaml |
+        kubectl apply -f -
+      args:
+        executable: /bin/bash
+        stdin: "{{ grafana_admin_password }}"
+        stdin_add_newline: false
       register: secret_output
-      changed_when: "'configured' in secret_output.stdout or 'created' in secret_output.stdout"
+      changed_when: >-
+        'configured' in secret_output.stdout or
+        'created' in secret_output.stdout
+      no_log: true
 
     - name: Create remote directory for monitoring
       ansible.builtin.file:
@@ -24,11 +54,22 @@
         state: directory
         mode: "0755"
 
-    - name: Copy Helm chart from GitHub Runner to Master Node
+    - name: Copy monitoring values from GitHub Runner to Master Node
       ansible.builtin.copy:
         src: "../Monitoring/"
         dest: "{{ val_path }}/"
         mode: "0644"
+
+    - name: Add Helm repository
+      ansible.builtin.shell: |
+        set -euo pipefail
+        helm repo add prometheus-community \
+          https://prometheus-community.github.io/helm-charts \
+          --force-update
+        helm repo update prometheus-community
+      args:
+        executable: /bin/bash
+      changed_when: false
 
     - name: Install or Upgrade Helm Release
       ansible.builtin.shell: |
@@ -36,13 +77,11 @@
           prometheus-community/kube-prometheus-stack \
           --version 92.10.1 \
           -n monitoring \
-          -f ~/monitoring/values.yaml \
+          -f "{{ val_path }}/values.yaml" \
           --wait --timeout 10m
       register: helm_output
       args:
         executable: /bin/bash
-      environment:
-        KUBECONFIG: /home/admin/.kube/config
       changed_when: true
 
     - name: Show Helm deploy output
