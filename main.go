@@ -8,7 +8,32 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+var (
+	httpRequests = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "goapp_http_requests_total",
+			Help: "Total application HTTP requests.",
+		},
+		[]string{"code", "method"},
+	)
+
+	httpDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "goapp_http_request_duration_seconds",
+			Help:    "Application HTTP request duration.",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"method"},
+	)
+)
+
+func init() {
+	prometheus.MustRegister(httpRequests, httpDuration)
+}
 
 func handler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -22,7 +47,18 @@ func handler(w http.ResponseWriter, _ *http.Request) {
 
 func router() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/", handler)
+
+	appHandler := promhttp.InstrumentHandlerCounter(
+		httpRequests,
+		promhttp.InstrumentHandlerDuration(
+			httpDuration,
+			http.HandlerFunc(handler),
+		),
+	)
+
+	r.Handle("/", appHandler)
+	r.Handle("/metrics", promhttp.Handler())
+
 	return r
 }
 

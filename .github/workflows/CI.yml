@@ -185,7 +185,8 @@ jobs:
             --extra-vars "image_tag=${IMAGE_TAG}"
       
       - name: Monitoring deploy
-        env: 
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
         run: |
           ansible-playbook \

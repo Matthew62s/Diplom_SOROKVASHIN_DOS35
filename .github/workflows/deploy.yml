@@ -291,9 +291,10 @@ jobs:
 
       - name: Monitoring deploy
         env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
         run: |
           ansible-playbook \
             -i inventory/cluster/inventory.ini \
-            ..Ansible/monitoring.yml \
+            ../Ansible/monitoring.yml \
             --limit master-node
