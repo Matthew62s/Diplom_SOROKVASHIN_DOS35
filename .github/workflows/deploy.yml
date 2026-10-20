@@ -249,7 +249,7 @@ jobs:
           kube-node
           calico-rr
           EOF
-
+      
       - name: Setup ghcr registry
         if: ${{ inputs.apply }}
         env:
@@ -288,3 +288,12 @@ jobs:
             --limit master-node \
             -e "k8s_user=${K8S_USER} k8s_token=${K8S_TOKEN}"
           ansible-playbook -i inventory/cluster/inventory.ini ../Ansible/helm_push.yml --limit master-node
+
+      - name: Monitoring deploy
+        env:
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+        run: |
+          ansible-playbook \
+            -i inventory/cluster/inventory.ini \
+            Ansible/monitoring.yml \
+            --limit master-node
