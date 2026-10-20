@@ -183,3 +183,12 @@ jobs:
             -i inventory/deploy.ini \
             Ansible/deploy_app.yml \
             --extra-vars "image_tag=${IMAGE_TAG}"
+      
+      - name: Monitoring deploy
+        env: 
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+        run: |
+          ansible-playbook \
+            -i inventory/deploy.ini \
+            Ansible/monitoring.yml \
+            --limit master-node
