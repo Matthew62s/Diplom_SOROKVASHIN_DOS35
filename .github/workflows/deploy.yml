@@ -295,5 +295,5 @@ jobs:
         run: |
           ansible-playbook \
             -i inventory/cluster/inventory.ini \
-            Ansible/monitoring.yml \
+            ..Ansible/monitoring.yml \
             --limit master-node
