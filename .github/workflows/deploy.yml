@@ -33,11 +33,35 @@ jobs:
         with:
           persist-credentials: false
       
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Test Go application
+        run: |
+          go test -mod=readonly -race \
+            -coverprofile="$RUNNER_TEMP/coverage.out" \
+            -v ./...
+
+      - name: Build Docker image for tests
+        env:
+          TEST_IMAGE: goapp-deploy-test:${{ github.sha }}
+        run: |
+          docker build --tag "$TEST_IMAGE" .
+
+      - name: Test Docker image
+        env:
+          TEST_IMAGE: goapp-deploy-test:${{ github.sha }}
+        run: |
+          bash tests/smoke.sh "$TEST_IMAGE"
+      
       - name: Install Helm
         uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
         with:
           version: v3.19.0
-          
+
       - name: Validate Helm chart
         run: |
           helm lint Helm_go
