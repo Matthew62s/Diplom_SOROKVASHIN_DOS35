@@ -32,6 +32,19 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
+      
+      - name: Install Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+        with:
+          version: v3.19.0
+          
+      - name: Validate Helm chart
+        run: |
+          helm lint Helm_go
+          helm template my-diplom-app Helm_go \
+            --namespace default \
+            --set serviceMonitor.enabled=true \
+            > /tmp/goapp-rendered.yaml
           
       - name: Super-linter
         uses: super-linter/super-linter@2da136927bd4a73596db63044b504547c62cb854 # v9.0.0
@@ -43,6 +56,10 @@ jobs:
           VALIDATE_JSON_PRETTIER: "false"
           VALIDATE_YAML_PRETTIER: "false"
           TRIVY_SKIP_DIRS: "Terraform,Helm_go/templates"
+          FILTER_REGEX_EXCLUDE: '(^|/)Helm_go/templates/'
+          KUBERNETES_KUBECONFORM_OPTIONS: >-
+            -schema-location default
+            -schema-location https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
 
       # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
       - name: Setup Terraform
