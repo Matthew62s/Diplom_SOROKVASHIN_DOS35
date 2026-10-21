@@ -1,8 +1,3 @@
-# CI/CD Go-app Project
-
-## by SOROKVASHIN MATVEI
-
-
 # Автоматизация CI/CD Go-приложения в AWS и Kubernetes
 
 Дипломный проект Сороквашин Матвеq, группа DOS35.
@@ -12,7 +7,7 @@
 в Kubernetes и мониторинг с уведомлениями в Telegram.
 
 Репозиторий: [Matthew62s/Diplom_SOROKVASHIN_DOS35](https://github.com/Matthew62s/Diplom_SOROKVASHIN_DOS35).
-Основа приложения — [Golang Hello World](https://github.com/hackersandslackers/golang-helloworld).
+Основа приложения — [Go Hello World](https://github.com/hackersandslackers/golang-helloworld).
 
 ## Архитектура
 
@@ -39,40 +34,40 @@ flowchart TD
     CI -->|Результаты CI/CD| Telegram
 ```
 
-Terraform создаёт VPC, публичные и приватные подсети, Internet Gateway,
+Terraform создаёт VPC, публичные и приватные подсети, internet Gateway,
 маршрутизацию, Security Group, SSH key pair и три EC2-инстанса.
 Kubespray устанавливает Kubernetes: один control-plane/etcd и два worker-узла.
 Все три EC2 в текущем коде размещаются в первой публичной подсети.
 Это учебный кластер с единственным control-plane, без отказоустойчивости etcd.
 
-| Компонент | Размещение и назначение |
-| --- | --- |
-| Go-приложение | Namespace `default`, Deployment `goapp`, порт контейнера `8080` |
-| Service приложения | `goapp-service`, ClusterIP, порт `80` → `8080` |
-| Helm-релиз приложения | `my-diplom-app` |
-| Traefik | Namespace `default`, привязан к `worker-node-1`, hostPort `80/443` |
-| Мониторинг | Namespace `monitoring`, Helm-релиз `monitoring` |
-| Prometheus | Сбор метрик Kubernetes, узлов и приложения |
-| Grafana | Визуализация метрик, доступ через Traefik |
-| Alertmanager | Маршрутизация алертов приложения в Telegram |
+| Компонент             | Размещение и назначение                                            |
+| --------------------- | ------------------------------------------------------------------ |
+| Go-приложение         | Namespace `default`, Deployment `goapp`, порт контейнера `8080`    |
+| Service приложения    | `goapp-service`, ClusterIP, порт `80` → `8080`                     |
+| Helm-релиз приложения | `my-diplom-app`                                                    |
+| Traefik               | Namespace `default`, привязан к `worker-node-1`, hostPort `80/443` |
+| Мониторинг            | Namespace `monitoring`, Helm-релиз `monitoring`                    |
+| Prometheus            | Сбор метрик Kubernetes, узлов и приложения                         |
+| Grafana               | Визуализация метрик, доступ через Traefik                          |
+| Alertmanager          | Маршрутизация алертов приложения в Telegram                        |
 
 ## Инструменты
 
-| Инструмент | Роль |
-| --- | --- |
-| AWS EC2, VPC, S3 | Вычислительные ресурсы, сеть и удалённый Terraform state |
-| Terraform | Декларативное описание AWS-инфраструктуры |
-| Ansible, Kubespray `v2.26.0` | Настройка серверов и установка Kubernetes |
-| Go 1.25 | HTTP-приложение и автотесты |
-| Docker | Многоэтапная сборка и запуск приложения без root |
-| GitHub Actions, GHCR | CI/CD и хранение образов |
-| Helm | Установка приложения, Traefik и мониторинга |
-| Traefik, Let's Encrypt | Ingress и HTTPS с ACME HTTP-01 |
-| Prometheus Operator | Управление Prometheus, ServiceMonitor и PrometheusRule |
-| kube-prometheus-stack `92.10.1` | Prometheus, Grafana, Alertmanager и exporters |
-| Super-linter, Trivy | Проверки исходников, конфигураций и зависимостей |
-| Cosign | Подписание опубликованных Docker-образов |
-| Telegram Bot API | Уведомления CI/CD и Alertmanager |
+| Инструмент                      | Роль                                                     |
+| ------------------------------- | -------------------------------------------------------- |
+| AWS EC2, VPC, S3                | Вычислительные ресурсы, сеть и удалённый Terraform state |
+| Terraform                       | Декларативное описание AWS-инфраструктуры                |
+| Ansible, Kubespray `v2.26.0`    | Настройка серверов и установка Kubernetes                |
+| Go 1.25                         | HTTP-приложение и автотесты                              |
+| Docker                          | Многоэтапная сборка и запуск приложения без root         |
+| GitHub Actions, GHCR            | CI/CD и хранение образов                                 |
+| Helm                            | Установка приложения, Traefik и мониторинга              |
+| Traefik, Let's Encrypt          | Ingress и HTTPS с ACME HTTP-01                           |
+| Prometheus Operator             | Управление Prometheus, ServiceMonitor и PrometheusRule   |
+| kube-prometheus-stack `92.10.1` | Prometheus, Grafana, Alertmanager и exporters            |
+| Super-linter, Trivy             | Проверки исходников, конфигураций и зависимостей         |
+| Cosign                          | Подписание опубликованных Docker-образов                 |
+| Telegram Bot API                | Уведомления CI/CD и Alertmanager                         |
 
 Точные версии зависимостей приложения находятся в [go.mod](go.mod) и [go.sum](go.sum).
 AWS provider в Terraform имеет диапазон версий; Traefik устанавливается без
@@ -112,7 +107,7 @@ tests/smoke.sh                # HTTP-проверки собранного Docke
 ## Подготовка окружения
 
 Для локальной разработки нужны Git, Go 1.25 или совместимая более новая версия,
-Docker и curl. Для smoke-теста нужны Bash, diff и grep; на Windows можно
+Docker и cURL. Для smoke-теста нужны Bash, diff и grep; на Windows можно
 использовать WSL или Git Bash. Race detector требует доступного C toolchain.
 
 Для развёртывания нужны AWS-аккаунт, доступный GitHub Actions runner,
@@ -127,16 +122,16 @@ SSH-доступ к EC2 и DNS-зона в Cloudflare. По умолчанию �
 `environment: production`, можно хранить в этом окружении. Настройки:
 **Settings → Environments → production**.
 
-| Secret | Назначение |
-| --- | --- |
-| `AWS_ACCESS_KEY_ID` | AWS-доступ для Terraform и S3 backend |
-| `AWS_SECRET_ACCESS_KEY` | Секретный AWS access key |
-| `SSH_PRIVATE_KEY` | Приватный ключ для подключения Ansible к EC2 |
-| `GH_TOKEN` | Чтение образов GHCR при создании `ghcr-cred`; обычно PAT с `read:packages` |
-| `FINE_TOKEN` | GitHub API: чтение и изменение Actions Variables репозитория |
-| `CLOUDFLARE_API_TOKEN` | Изменение DNS-записи в используемой зоне Cloudflare |
-| `GRAFANA_ADMIN_PASSWORD` | Начальный пароль администратора Grafana |
-| `TELEGRAM_BOT_TOKEN` | Telegram-бот для алертов и уведомлений CI/CD |
+| Secret                   | Назначение                                                                 |
+| ------------------------ | -------------------------------------------------------------------------- |
+| `AWS_ACCESS_KEY_ID`      | AWS-доступ для Terraform и S3 backend                                      |
+| `AWS_SECRET_ACCESS_KEY`  | Секретный AWS access key                                                   |
+| `SSH_PRIVATE_KEY`        | Приватный ключ для подключения Ansible к EC2                               |
+| `GH_TOKEN`               | Чтение образов GHCR при создании `ghcr-cred`; обычно PAT с `read:packages` |
+| `FINE_TOKEN`             | GitHub API: чтение и изменение Actions Variables репозитория               |
+| `CLOUDFLARE_API_TOKEN`   | Изменение DNS-записи в используемой зоне Cloudflare                        |
+| `GRAFANA_ADMIN_PASSWORD` | Начальный пароль администратора Grafana                                    |
+| `TELEGRAM_BOT_TOKEN`     | Telegram-бот для алертов и уведомлений CI/CD                               |
 
 `GITHUB_TOKEN` выдаётся GitHub Actions автоматически. В job сборки он используется
 для публикации образов, статусов проверок и Git-тегов в пределах заданных permissions.
@@ -144,11 +139,11 @@ SSH-доступ к EC2 и DNS-зона в Cloudflare. По умолчанию �
 **Variables: Read and write**. AWS-права должны позволять управление ресурсами
 из Terraform и чтение/запись state в S3.
 
-| Variable | Назначение |
-| --- | --- |
-| `MASTER_NODE_IP` | Публичный IP master для SSH |
-| `WORKER_NODE1_IP` | Публичный IP первого worker |
-| `WORKER_NODE2_IP` | Публичный IP второго worker |
+| Variable           | Назначение                                                  |
+| ------------------ | ----------------------------------------------------------- |
+| `MASTER_NODE_IP`   | Публичный IP master для SSH                                 |
+| `WORKER_NODE1_IP`  | Публичный IP первого worker                                 |
+| `WORKER_NODE2_IP`  | Публичный IP второго worker                                 |
 | `TELEGRAM_CHAT_ID` | ID чата для уведомлений CI/CD; у групп обычно отрицательный |
 
 IP-переменные создаются или обновляются workflow `Deploy` на уровне репозитория
@@ -158,7 +153,7 @@ Environment: они могут перекрыть значения репози�
 Для Alertmanager `chat_id` отдельно задаётся в [Monitoring/values.yaml](Monitoring/values.yaml).
 Изменение `TELEGRAM_CHAT_ID` в GitHub автоматически его не меняет.
 
-Значения секретов не должны попадать в репозиторий, README, логи и снимки экрана.
+Значения секретов не должны попадать в репозиторий, readme, логи и снимки экрана.
 
 ### SSH, Terraform backend и DNS
 
@@ -284,12 +279,12 @@ Prometheus получает метрики Go-приложения через `S
 `release: monitoring`. Метрики узлов собирает node-exporter, состояние объектов
 Kubernetes — kube-state-metrics. Grafana обращается к Prometheus как источнику данных.
 
-| Метрика | Назначение |
-| --- | --- |
-| `goapp_http_requests_total` | Количество запросов с labels `code` и `method` |
-| `goapp_http_request_duration_seconds` | Histogram времени обработки запросов |
-| `go_goroutines` | Количество goroutines |
-| `process_resident_memory_bytes` | Память процесса |
+| Метрика                               | Назначение                                     |
+| ------------------------------------- | ---------------------------------------------- |
+| `goapp_http_requests_total`           | Количество запросов с labels `code` и `method` |
+| `goapp_http_request_duration_seconds` | Histogram времени обработки запросов           |
+| `go_goroutines`                       | Количество goroutines                          |
+| `process_resident_memory_bytes`       | Память процесса                                |
 
 В текущем коде инструментирован обработчик `/`; сбор `/metrics` не увеличивает
 счётчик приложения. Kubernetes probes на `/` учитываются как запросы.
@@ -317,11 +312,11 @@ histogram_quantile(0.95,
 
 Правила находятся в [Monitoring/goapp-alerts.yaml](Monitoring/goapp-alerts.yaml):
 
-| Алерт | Условие |
-| --- | --- |
-| `GoAppNoAvailableReplicas` | Нет доступных реплик Deployment более 2 минут |
-| `GoAppMetricsUnavailable` | Scrape target приложения недоступен более 2 минут |
-| `GoAppHighErrorRate` | Более 5% ответов 5xx в течение 5 минут при достаточном трафике |
+| Алерт                      | Условие                                                        |
+| -------------------------- | -------------------------------------------------------------- |
+| `GoAppNoAvailableReplicas` | Нет доступных реплик Deployment более 2 минут                  |
+| `GoAppMetricsUnavailable`  | Scrape target приложения недоступен более 2 минут              |
+| `GoAppHighErrorRate`       | Более 5% ответов 5xx в течение 5 минут при достаточном трафике |
 
 Alertmanager отправляет в Telegram алерты `GoApp.*` с label `namespace=default`.
 Остальные алерты в текущей конфигурации направляются в receiver `null`.
