@@ -345,7 +345,7 @@ jobs:
     name: Telegram notification
     needs:
       - autosetup
-    if: ${{ always() && github.event_name == 'push' }}
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     environment: production
     permissions: {}
