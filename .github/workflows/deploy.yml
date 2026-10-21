@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  terraform:
-    name: "Terraform"
+  autosetup:
+    name: "Autosetup"
     runs-on: ubuntu-latest
     environment: production
     env:
