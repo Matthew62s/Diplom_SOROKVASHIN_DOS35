@@ -57,7 +57,7 @@ permissions:
   contents: read
 
 jobs:
-  tofu:
+  terraform_destroy:
     name: "Terraform"
     runs-on: ubuntu-latest
     environment: production
@@ -108,3 +108,47 @@ jobs:
         run: |
           cd "./Terraform"
           terraform apply -auto-approve destroy.tfplan
+  
+  notify:
+    name: Telegram notification
+    needs:
+      - terraform_destroy
+    if: ${{ always() && github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    environment: production
+    permissions: {}
+
+    steps:
+      - name: Send Telegram notification
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID }}
+          TERRAFORM_DESTROY_RESULT: ${{ needs.terraform_destroy.result }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          : "${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN is required}"
+          : "${TELEGRAM_CHAT_ID:?TELEGRAM_CHAT_ID is required}"
+
+          message=$(cat <<EOF
+          CI/CD: ${REPOSITORY}
+
+          TERRAFORM_DESTROY: ${TERRAFORM_DESTROY_RESULT}
+          Branch: ${BRANCH}
+          Commit: ${COMMIT:0:7}
+
+          ${RUN_URL}
+          EOF
+          )
+
+          curl --fail --silent --show-error \
+            --output /dev/null \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${message}" \
+            --config - <<EOF
+          url = "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+          EOF
