@@ -331,6 +331,7 @@ jobs:
           ansible-playbook -i inventory/cluster/inventory.ini ../Ansible/helm_push.yml --limit master-node
 
       - name: Monitoring deploy
+        if: ${{ inputs.apply }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
