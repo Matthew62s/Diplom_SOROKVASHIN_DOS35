@@ -332,7 +332,9 @@ jobs:
 
       - name: Monitoring deploy
         if: ${{ inputs.apply }}
+        working-directory: ./kubespray
         env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
         run: |
