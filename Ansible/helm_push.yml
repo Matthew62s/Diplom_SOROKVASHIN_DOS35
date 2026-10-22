@@ -23,7 +23,8 @@
     - name: Install or Upgrade Helm Release
       ansible.builtin.shell: |
         helm upgrade --install {{ helm_release_name }} {{ chart_remote_dir }} \
-          --namespace {{ k8s_namespace }}
+          --namespace {{ k8s_namespace }} \
+          --set serviceMonitor.enabled=false
       register: helm_output
       changed_when: true
 
